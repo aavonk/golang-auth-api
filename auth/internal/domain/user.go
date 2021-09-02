@@ -43,14 +43,17 @@ func (u *User) Validate() error {
 		return errors.New("invalid email address")
 	}
 
+	// Cast the password to a slice of runes so each character is counted
+	// rather than the amount of bytes each character holds.
 	if len([]rune(u.DangerousUnhashedPassword)) < 6 {
-		return errors.New("password doesn't meet criteria")
+		return errors.New("password must be atleast 6 characters")
 	}
 
 	return nil
 }
 
 // Prepare generates a unique uuid and trims the space off the name and email
+// fields of the user object
 func (u *User) Prepare() {
 	u.ID = uuid.New()
 	u.Email = strings.TrimSpace(u.Email)

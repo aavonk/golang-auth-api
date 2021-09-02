@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"encoding/json"
-	"fmt"
 	"io/ioutil"
 	"net/http"
 
@@ -25,15 +24,13 @@ func Register(w http.ResponseWriter, r *http.Request) {
 
 	err = json.Unmarshal(body, &user)
 
-	user.Prepare()
-
-	fmt.Printf("User struct: %+v", user)
 	if err != nil {
 		w.WriteHeader(http.StatusUnprocessableEntity)
 		json.NewEncoder(w).Encode(map[string]string{"error": err.Error()})
 		return
 	}
 
+	user.Prepare()
 	err = user.Validate()
 
 	if err != nil {
