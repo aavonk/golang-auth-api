@@ -1,0 +1,25 @@
+version: '3.9'
+
+volumes:
+  authservicevolume:
+    name: authservice-volume
+networks: 
+  authservicenetwork:
+    name: authservice-network
+
+services:
+  authservice-api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    env_file: 
+      - .env
+    #depends_on: 
+     # - postgres
+    volumes:
+      - ./:/app
+    ports:
+      - "${API_PORT}:${API_PORT}"
+    networks:
+      - authservicenetwork
+    entrypoint: ["/bin/bash", "./scripts/entrypoint.dev.sh"]
