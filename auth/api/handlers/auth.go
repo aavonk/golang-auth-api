@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 	"net/http"
 
+	"github.com/gorilla/sessions"
 	"github.com/todo-app/internal"
 	"github.com/todo-app/internal/domain"
 )
@@ -55,6 +56,12 @@ func Register(w http.ResponseWriter, r *http.Request) {
 
 	// Store the JWT on the session
 	session, err := internal.SessionStore.Get(r, "user-session")
+	session.Options = &sessions.Options{
+		// Path:     "/",
+		MaxAge:   86400 * 7, // one week
+		Secure:   true,
+		HttpOnly: true,
+	}
 
 	if err != nil {
 		internal.ErrInternalServer(err, err.Error()).Send(w)
@@ -62,7 +69,12 @@ func Register(w http.ResponseWriter, r *http.Request) {
 	}
 
 	session.Values["jwt"] = token
-	session.Save(r, w)
+	err = session.Save(r, w)
+
+	if err != nil {
+		internal.ErrInternalServer(err, "Internal server error").Send(w)
+		return
+	}
 	//token
 	userResponse := user.ToHTTPResponse()
 
