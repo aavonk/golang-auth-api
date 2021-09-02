@@ -8,14 +8,26 @@ networks:
     name: authservice-network
 
 services:
+  authservice-postgres:
+    image: postgres:13
+    restart: on-failure
+    env_file: 
+      - .env
+    ports:
+      - "${POSTGRES_PORT}:${POSTGRES_PORT}"
+    volumes:
+      - authservicevolume:/var/lib/postgresql/data
+      - ./database/scripts:/docker-entrypoint-initdb.d/
+    networks:
+      - authservicenetwork
   authservice-api:
     build:
       context: .
       dockerfile: Dockerfile
     env_file: 
       - .env
-    #depends_on: 
-     # - postgres
+    depends_on: 
+     - authservice-postgres
     volumes:
       - ./:/app
     ports:
