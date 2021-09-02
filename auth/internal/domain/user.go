@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/google/uuid"
+	"golang.org/x/crypto/bcrypt"
 )
 
 type User struct {
@@ -52,12 +53,17 @@ func (u *User) Validate() error {
 	return nil
 }
 
+func (u *User) HashPassword() ([]byte, error) {
+	return bcrypt.GenerateFromPassword([]byte(u.DangerousUnhashedPassword), bcrypt.DefaultCost)
+}
+
 // Prepare generates a unique uuid and trims the space off the name and email
 // fields of the user object
 func (u *User) Prepare() {
 	u.ID = uuid.New()
 	u.Email = strings.TrimSpace(u.Email)
 	u.Name = strings.TrimSpace(u.Name)
+
 }
 
 func (u *User) ToHTTPResponse() *UserResponse {
