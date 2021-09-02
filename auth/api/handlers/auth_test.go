@@ -23,7 +23,7 @@ func TestRegisterSuccessHandler(t *testing.T) {
 	rr := httptest.NewRecorder()
 	handler := http.HandlerFunc(Register)
 
-	// Call ServeHTTP directly and pass in oir Request and Response Recorder
+	// Call ServeHTTP directly and pass in our Request and Response Recorder
 	handler.ServeHTTP(rr, req)
 
 	// Check that the status code is what we expect
