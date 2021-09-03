@@ -22,12 +22,24 @@ type UserResponse struct {
 	Email string    `json:"email"`
 }
 
-// type UserDBModel struct {
-// 	ID             uuid.UUID
-// 	Name           string
-// 	Email          string
-// 	Password       string
-// 	EmailConfirmed bool
+type UserDBModel struct {
+	ID             uuid.UUID
+	FirstName      string
+	LastName       string
+	Email          string
+	Password       string
+	EmailConfirmed bool
+}
+
+//https://github.com/go-ozzo/ozzo-dbx/blob/4d1628e5e2/struct.go
+// DefaultFieldMapFunc maps a field name to a DB column name.
+// The mapping rule set by this method is that words in a field name will be separated by underscores
+// and the name will be turned into lower case. For example, "FirstName" maps to "first_name", and "MyID" becomes "my_id".
+// See DB.FieldMapper for more details.
+
+//var fieldRegex      = regexp.MustCompile(`([^A-Z_])([A-Z])`)
+// func DefaultFieldMapFunc(f string) string {
+// 	return strings.ToLower(fieldRegex.ReplaceAllString(f, "${1}_$2"))
 // }
 
 var (
