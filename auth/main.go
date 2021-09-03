@@ -2,10 +2,10 @@ package main
 
 import (
 	"log"
-	"os"
 
 	"github.com/joho/godotenv"
 	"github.com/todo-app/api/router"
+	"github.com/todo-app/internal"
 	"github.com/todo-app/internal/exithandler"
 	"github.com/todo-app/internal/logger"
 	"github.com/todo-app/internal/server"
@@ -17,13 +17,19 @@ func main() {
 		logger.Info.Panic("failed to load env vars")
 	}
 
+	app, err := internal.BootstrapApp()
+
+	if err != nil {
+		logger.Error.Fatalf("Failed bootstrapping app -- error: %s", err.Error())
+	}
+
 	srv := server.Get().
-		WithAddr(":" + os.Getenv("API_PORT")).
+		WithAddr(app.Confg.GetAPIPort()).
 		WithRouter(router.Get()).
 		WithErrorLogger(logger.Error)
 
 	go func() {
-		logger.Info.Printf("Starting server on port %s", os.Getenv("API_PORT"))
+		logger.Info.Printf("Starting server on port %s", app.Confg.GetAPIPort())
 
 		if err := srv.Listen(); err != nil {
 			logger.Error.Fatal(err.Error())
@@ -31,9 +37,12 @@ func main() {
 	}()
 
 	exithandler.Init(func() {
-		// TODO:Close the DB Connection here
 		if err := srv.Close(); err != nil {
 			log.Println(err.Error())
+		}
+
+		if err := app.DataStore.Close(); err != nil {
+			logger.Error.Println(err.Error())
 		}
 	})
 

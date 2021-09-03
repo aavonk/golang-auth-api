@@ -25,6 +25,10 @@ func GetDataStore(connStr string) (*DataStore, error) {
 	}, nil
 }
 
+func (d *DataStore) Close() error {
+	return d.Client.Close()
+}
+
 func getDatabaseConn(connString string) (*sql.DB, error) {
 	db, err := sql.Open("postgres", connString)
 
