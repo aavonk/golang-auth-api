@@ -27,7 +27,6 @@ func Register(w http.ResponseWriter, r *http.Request) {
 
 	if err != nil {
 		internal.ErrUnprocessableEntity(err, err.Error()).Send(w)
-
 		return
 	}
 

@@ -1,13 +1,14 @@
 package internal
 
 import (
-	"database/sql"
+	_ "database/sql"
 
+	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
 )
 
 type DataStore struct {
-	Client *sql.DB
+	Client *sqlx.DB
 }
 
 // GetDataStore connects to a postgrest database, makes sure it has a valid
@@ -29,14 +30,11 @@ func (d *DataStore) Close() error {
 	return d.Client.Close()
 }
 
-func getDatabaseConn(connString string) (*sql.DB, error) {
-	db, err := sql.Open("postgres", connString)
+func getDatabaseConn(connString string) (*sqlx.DB, error) {
+	// Connect calls sql.Ping() internally
+	db, err := sqlx.Connect("postgres", connString)
 
 	if err != nil {
-		return nil, err
-	}
-
-	if err := db.Ping(); err != nil {
 		return nil, err
 	}
 
