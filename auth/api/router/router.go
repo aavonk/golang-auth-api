@@ -7,9 +7,10 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/todo-app/api/handlers"
+	"github.com/todo-app/internal"
 )
 
-func Get() *mux.Router {
+func Get(app *internal.App) *mux.Router {
 	r := mux.NewRouter()
 	r.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
@@ -17,7 +18,7 @@ func Get() *mux.Router {
 		json.NewEncoder(w).Encode(map[string]string{"status": "OK", "time": time.Now().UTC().String()})
 	})
 
-	r.HandleFunc("/register", handlers.Register).Methods("POST")
+	r.HandleFunc("/register", handlers.Register(app)).Methods("POST")
 
 	http.Handle("/", r)
 	return r

@@ -25,7 +25,7 @@ func main() {
 
 	srv := server.Get().
 		WithAddr(app.Confg.GetAPIPort()).
-		WithRouter(router.Get()).
+		WithRouter(router.Get(app)).
 		WithErrorLogger(logger.Error)
 
 	go func() {

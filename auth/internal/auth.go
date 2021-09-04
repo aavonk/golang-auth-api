@@ -6,6 +6,7 @@ import (
 	"github.com/golang-jwt/jwt"
 	"github.com/google/uuid"
 	"github.com/gorilla/sessions"
+	"golang.org/x/crypto/bcrypt"
 )
 
 var SessionStore = sessions.NewCookieStore([]byte(os.Getenv("SESSION_KEY")))
@@ -28,4 +29,8 @@ func NewToken(claims JWTClaims) (string, error) {
 	}
 
 	return tokenString, nil
+}
+
+func HashPassword(password []byte) ([]byte, error) {
+	return bcrypt.GenerateFromPassword(password, bcrypt.DefaultCost)
 }

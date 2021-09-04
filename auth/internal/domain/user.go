@@ -10,10 +10,11 @@ import (
 )
 
 type User struct {
-	ID                        uuid.UUID `json:"id"`
-	Name                      string    `json:"name"`
-	Email                     string    `json:"email"`
-	DangerousUnhashedPassword string    `json:"password"`
+	ID        uuid.UUID `json:"id"`
+	FirstName string    `json:"firstName"`
+	LastName  string    `json:"lastName"`
+	Email     string    `json:"email"`
+	Password  string    `json:"password"`
 }
 
 type UserResponse struct {
@@ -22,23 +23,14 @@ type UserResponse struct {
 	Email string    `json:"email"`
 }
 
-type UserDBModel struct {
-	ID             uuid.UUID `db:"id"`
-	FirstName      string    `db:"first_name"`
-	LastName       string    `db:"last_name"`
-	Email          string    `db:"email"`
-	Password       string    `db:"password"`
-	EmailConfirmed bool      `db:"email_confirmed"`
-}
-
 var (
 	emailRegexp = regexp.MustCompile(`(?m)^(((((((((\s? +)?(\(((\s? +)?(([!-'*-[\]-~]*)|(\\([ -~]|\s))))*(\s? +)?\)))(\s? +)?)|(\s? +))?([A-Za-z0-9!#-'*+\/=?^_\x60{|}~-])+((((\s? +)?(\(((\s? +)?(([!-'*-[\]-~]*)|(\\([ -~]|\s))))*(\s? +)?\)))(\s? +)?)|(\s? +))?)|(((((\s? +)?(\(((\s? +)?(([!-'*-[\]-~]*)|(\\([ -~]|\s))))*(\s? +)?\)))(\s? +)?)|(\s? +))?"((\s? +)?(([!#-[\]-~])|(\\([ -~]|\s))))*(\s? +)?"))?)?(((((\s? +)?(\(((\s? +)?(([!-'*-[\]-~]*)|(\\([ -~]|\s))))*(\s? +)?\)))(\s? +)?)|(\s? +))?<(((((((\s? +)?(\(((\s? +)?(([!-'*-[\]-~]*)|(\\([ -~]|\s))))*(\s? +)?\)))(\s? +)?)|(\s? +))?(([A-Za-z0-9!#-'*+\/=?^_\x60{|}~-])+(\.([A-Za-z0-9!#-'*+\/=?^_\x60{|}~-])+)*)((((\s? +)?(\(((\s? +)?(([!-'*-[\]-~]*)|(\\([ -~]|\s))))*(\s? +)?\)))(\s? +)?)|(\s? +))?)|(((((\s? +)?(\(((\s? +)?(([!-'*-[\]-~]*)|(\\([ -~]|\s))))*(\s? +)?\)))(\s? +)?)|(\s? +))?"((\s? +)?(([!#-[\]-~])|(\\([ -~]|\s))))*(\s? +)?"))@((((((\s? +)?(\(((\s? +)?(([!-'*-[\]-~]*)|(\\([ -~]|\s))))*(\s? +)?\)))(\s? +)?)|(\s? +))?(([A-Za-z0-9!#-'*+\/=?^_\x60{|}~-])+(\.([A-Za-z0-9!#-'*+\/=?^_\x60{|}~-])+)*)((((\s? +)?(\(((\s? +)?(([!-'*-[\]-~]*)|(\\([ -~]|\s))))*(\s? +)?\)))(\s? +)?)|(\s? +))?)|(((((\s? +)?(\(((\s? +)?(([!-'*-[\]-~]*)|(\\([ -~]|\s))))*(\s? +)?\)))(\s? +)?)|(\s? +))?\[((\s? +)?([!-Z^-~]))*(\s? +)?\]((((\s? +)?(\(((\s? +)?(([!-'*-[\]-~]*)|(\\([ -~]|\s))))*(\s? +)?\)))(\s? +)?)|(\s? +))?)))>((((\s? +)?(\(((\s? +)?(([!-'*-[\]-~]*)|(\\([ -~]|\s))))*(\s? +)?\)))(\s? +)?)|(\s? +))?))|(((((((\s? +)?(\(((\s? +)?(([!-'*-[\]-~]*)|(\\([ -~]|\s))))*(\s? +)?\)))(\s? +)?)|(\s? +))?(([A-Za-z0-9!#-'*+\/=?^_\x60{|}~-])+(\.([A-Za-z0-9!#-'*+\/=?^_\x60{|}~-])+)*)((((\s? +)?(\(((\s? +)?(([!-'*-[\]-~]*)|(\\([ -~]|\s))))*(\s? +)?\)))(\s? +)?)|(\s? +))?)|(((((\s? +)?(\(((\s? +)?(([!-'*-[\]-~]*)|(\\([ -~]|\s))))*(\s? +)?\)))(\s? +)?)|(\s? +))?"((\s? +)?(([!#-[\]-~])|(\\([ -~]|\s))))*(\s? +)?"))@((((((\s? +)?(\(((\s? +)?(([!-'*-[\]-~]*)|(\\([ -~]|\s))))*(\s? +)?\)))(\s? +)?)|(\s? +))?(([A-Za-z0-9!#-'*+\/=?^_\x60{|}~-])+(\.([A-Za-z0-9!#-'*+\/=?^_\x60{|}~-])+)*)((((\s? +)?(\(((\s? +)?(([!-'*-[\]-~]*)|(\\([ -~]|\s))))*(\s? +)?\)))(\s? +)?)|(\s? +))?)|(((((\s? +)?(\(((\s? +)?(([!-'*-[\]-~]*)|(\\([ -~]|\s))))*(\s? +)?\)))(\s? +)?)|(\s? +))?\[((\s? +)?([!-Z^-~]))*(\s? +)?\]((((\s? +)?(\(((\s? +)?(([!-'*-[\]-~]*)|(\\([ -~]|\s))))*(\s? +)?\)))(\s? +)?)|(\s? +))?))))$`)
 )
 
 // Validate makes sure that the newly created user object passes the domain model and has valid fields
 func (u *User) Validate() error {
-	if u.Name == "" {
-		return errors.New("a user must have a name")
+	if u.FirstName == "" || u.LastName == "" {
+		return errors.New("a user must have a first and last name")
 	}
 
 	if !emailRegexp.MatchString(strings.ToLower(u.Email)) {
@@ -47,15 +39,21 @@ func (u *User) Validate() error {
 
 	// Cast the password to a slice of runes so each character is counted
 	// rather than the amount of bytes each character holds.
-	if len([]rune(u.DangerousUnhashedPassword)) < 6 {
+	if len([]rune(u.Password)) < 6 {
 		return errors.New("password must be atleast 6 characters")
 	}
 
 	return nil
 }
 
-func (u *User) HashPassword() ([]byte, error) {
-	return bcrypt.GenerateFromPassword([]byte(u.DangerousUnhashedPassword), bcrypt.DefaultCost)
+func (u *User) HashPassword() error {
+	pass, err := bcrypt.GenerateFromPassword([]byte(u.Password), bcrypt.DefaultCost)
+
+	if err != nil {
+		return err
+	}
+	u.Password = string(pass)
+	return nil
 }
 
 // Prepare generates a unique uuid and trims the space off the name and email
@@ -63,14 +61,19 @@ func (u *User) HashPassword() ([]byte, error) {
 func (u *User) Prepare() {
 	u.ID = uuid.New()
 	u.Email = strings.TrimSpace(u.Email)
-	u.Name = strings.TrimSpace(u.Name)
+	u.FirstName = strings.TrimSpace(u.FirstName)
+	u.LastName = strings.TrimSpace(u.LastName)
 
+}
+
+func (u *User) IsEmpty() bool {
+	return u == &User{} || *u == User{}
 }
 
 func (u *User) ToHTTPResponse() *UserResponse {
 	return &UserResponse{
 		ID:    u.ID,
 		Email: u.Email,
-		Name:  u.Name,
+		Name:  u.FirstName,
 	}
 }
