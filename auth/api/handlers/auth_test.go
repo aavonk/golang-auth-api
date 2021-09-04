@@ -1,5 +1,7 @@
 package handlers
 
+import "testing"
+
 // import (
 // 	"bytes"
 // 	"encoding/json"
@@ -7,6 +9,14 @@ package handlers
 // 	"net/http/httptest"
 // 	"testing"
 // )
+
+func TestTesting(t *testing.T) {
+	num := 2 + 2
+
+	if num != 3 {
+		t.Error("Hello")
+	}
+}
 
 // // TestRegisterSuccessHandler tests that Register responds successfully
 // // given valid signup information

@@ -46,7 +46,7 @@ func (r *UserRepo) GetByEmail(email string) domain.User {
 
 	if err != nil {
 		// No records were found, return empty user object
-		logger.Error.Print("error from getbyemail: ", err)
+		logger.Error.Print("error from GetByEmail Query: ", err)
 		return domain.User{}
 	}
 
@@ -66,15 +66,13 @@ func (r *UserRepo) Create(user *domain.User) (domain.User, error) {
 		EmailConfirmed: false,
 	}
 
-	hi, err := r.db.NamedExec(`INSERT INTO users (id, first_name, last_name, email, password, email_confirmed)
+	_, err := r.db.NamedExec(`INSERT INTO users (id, first_name, last_name, email, password, email_confirmed)
 	 VALUES (:id, :first_name, :last_name, :email, :password, :email_confirmed)`, model)
-
-	logger.Info.Printf("Result from create query: %+v", hi)
 
 	if err != nil {
 		return domain.User{}, err
 	}
 
 	// Find out how to return the user
-	return domain.User{}, nil
+	return model.ToDomain(), nil
 }

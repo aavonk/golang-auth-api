@@ -58,7 +58,9 @@ func register(repo domain.UserRepository) http.HandlerFunc {
 			return
 		}
 
-		_, err = repo.Create(&user)
+		// Reassign user variable to what is returned from creating a user in the DB
+		user, err = repo.Create(&user)
+
 		if err != nil {
 			internal.ErrInternalServer(err, "Internal server error").Send(w)
 			return
