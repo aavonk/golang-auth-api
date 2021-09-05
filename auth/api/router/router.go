@@ -19,6 +19,7 @@ func Get(app *application.App) *mux.Router {
 	})
 
 	r.HandleFunc("/register", handlers.Register(app)).Methods("POST")
+	r.HandleFunc("/signin", handlers.Login(app)).Methods("POST")
 
 	http.Handle("/", r)
 	return r

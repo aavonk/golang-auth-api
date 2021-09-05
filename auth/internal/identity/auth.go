@@ -7,8 +7,18 @@ import (
 	"github.com/golang-jwt/jwt"
 	"github.com/google/uuid"
 	"github.com/gorilla/sessions"
+	"github.com/todo-app/internal/domain"
 	"golang.org/x/crypto/bcrypt"
 )
+
+var (
+	IdentitySessionName = "user-session"
+)
+
+type LoginRequest struct {
+	Email     string `json:"email"`
+	Passsword string `json:"password"`
+}
 
 var SessionStore = sessions.NewCookieStore([]byte(os.Getenv("SESSION_KEY")))
 
@@ -17,7 +27,7 @@ type JWTClaims struct {
 	Email  string
 }
 
-func NewToken(claims JWTClaims) (string, error) {
+func newToken(claims JWTClaims) (string, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"user_id": claims.UserId,
 		"email":   claims.Email,
@@ -40,7 +50,7 @@ func ComparePasswords(hashedPassword, suppliedPassword []byte) error {
 	return bcrypt.CompareHashAndPassword(hashedPassword, suppliedPassword)
 }
 
-func NewSession(r *http.Request, sessionName string) (*sessions.Session, error) {
+func newSession(r *http.Request, sessionName string) (*sessions.Session, error) {
 	sess, err := SessionStore.Get(r, sessionName)
 
 	if err != nil {
@@ -55,4 +65,31 @@ func NewSession(r *http.Request, sessionName string) (*sessions.Session, error) 
 	}
 
 	return sess, nil
+}
+
+func SetAndSaveSession(r *http.Request, w http.ResponseWriter, user domain.User) error {
+	session, err := newSession(r, IdentitySessionName)
+
+	if err != nil {
+		return err
+	}
+
+	token, err := newToken(JWTClaims{
+		UserId: user.ID,
+		Email:  user.Email,
+	})
+
+	if err != nil {
+		return err
+	}
+
+	// Save a JWT Key in the session cookie
+	session.Values["jwt"] = token
+
+	err = session.Save(r, w)
+
+	if err != nil {
+		return err
+	}
+	return nil
 }

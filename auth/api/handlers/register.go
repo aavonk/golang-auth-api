@@ -62,36 +62,13 @@ func register(repo repositories.UserRepositoryInterface) http.HandlerFunc {
 			return
 		}
 
-		// Generate a JWT
-		token, err := identity.NewToken(identity.JWTClaims{
-			UserId: user.ID,
-			Email:  user.Email,
-		})
-
-		if err != nil {
-			internal.ErrUnprocessableEntity(err, err.Error()).Send(w)
-			return
-		}
-
-		// Store the JWT on the session
-		session, err := identity.NewSession(r, "user-session")
-
-		if err != nil {
-			internal.ErrInternalServer(err, "Internal server error").Send(w)
-			return
-		}
-
-		session.Values["jwt"] = token
-		err = session.Save(r, w)
-
-		if err != nil {
-			internal.ErrInternalServer(err, "Internal server error").Send(w)
-			return
-		}
 		userResponse := user.ToHTTPResponse()
 
-		//TODO: Email has not been confirmed - generate email token
-		// and send to email process
+		err = identity.SetAndSaveSession(r, w, user)
+		if err != nil {
+			internal.ErrInternalServer(err, "internal error message").Send(w)
+			return
+		}
 
 		w.WriteHeader(http.StatusCreated)
 		json.NewEncoder(w).Encode(&userResponse)
