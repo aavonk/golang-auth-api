@@ -7,7 +7,7 @@ import (
 	_ "github.com/golang-migrate/migrate/v4/database/postgres"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
 	"github.com/joho/godotenv"
-	"github.com/todo-app/internal/config"
+	"github.com/todo-app/pkg/config"
 )
 
 func main() {
