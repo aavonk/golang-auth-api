@@ -1,15 +1,15 @@
 package internal
 
 import (
-	"github.com/todo-app/internal/config"
-	"github.com/todo-app/internal/domain"
-	"github.com/todo-app/internal/logger"
+	"github.com/todo-app/pkg/config"
+	"github.com/todo-app/pkg/logger"
 )
 
 type App struct {
 	DataStore      *DataStore
 	Confg          *config.Confg
-	UserRepository domain.UserRepository
+	UserRepository UserRepositoryInterface
+	// IdentityService service.IdentityServiceInterface
 }
 
 func BootstrapApp() (*App, error) {
@@ -22,8 +22,9 @@ func BootstrapApp() (*App, error) {
 
 	logger.Info.Print("successfully connected to database")
 	return &App{
-		DataStore:      db,
+		DataStore:      db, // TODO: take out -- db should only be accessed in repositories
 		Confg:          cfg,
 		UserRepository: NewUserRepository(db.Client),
+		// IdentityService: service.NewIdentityService(db.Client),
 	}, nil
 }

@@ -8,6 +8,7 @@ import (
 
 	"github.com/todo-app/internal"
 	"github.com/todo-app/internal/domain"
+	"github.com/todo-app/internal/identity"
 )
 
 func register(repo domain.UserRepository) http.HandlerFunc {
@@ -59,7 +60,7 @@ func register(repo domain.UserRepository) http.HandlerFunc {
 		}
 
 		// Generate a JWT
-		token, err := internal.NewToken(internal.JWTClaims{
+		token, err := identity.NewToken(identity.JWTClaims{
 			UserId: user.ID,
 			Email:  user.Email,
 		})
@@ -70,7 +71,7 @@ func register(repo domain.UserRepository) http.HandlerFunc {
 		}
 
 		// Store the JWT on the session
-		session, err := internal.NewSession(r, "user-session")
+		session, err := identity.NewSession(r, "user-session")
 
 		if err != nil {
 			internal.ErrInternalServer(err, "Internal server error").Send(w)

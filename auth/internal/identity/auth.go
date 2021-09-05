@@ -1,4 +1,4 @@
-package internal
+package identity
 
 import (
 	"net/http"
@@ -34,6 +34,10 @@ func NewToken(claims JWTClaims) (string, error) {
 
 func HashPassword(password []byte) ([]byte, error) {
 	return bcrypt.GenerateFromPassword(password, bcrypt.DefaultCost)
+}
+
+func ComparePasswords(hashedPassword, suppliedPassword []byte) error {
+	return bcrypt.CompareHashAndPassword(hashedPassword, suppliedPassword)
 }
 
 func NewSession(r *http.Request, sessionName string) (*sessions.Session, error) {

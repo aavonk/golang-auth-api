@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/todo-app/internal/logger"
+	"github.com/todo-app/pkg/logger"
 )
 
 type ErrResponse struct {

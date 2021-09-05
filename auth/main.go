@@ -6,9 +6,9 @@ import (
 	"github.com/joho/godotenv"
 	"github.com/todo-app/api/router"
 	"github.com/todo-app/internal"
-	"github.com/todo-app/internal/exithandler"
-	"github.com/todo-app/internal/logger"
-	"github.com/todo-app/internal/server"
+	"github.com/todo-app/pkg/exithandler"
+	"github.com/todo-app/pkg/logger"
+	"github.com/todo-app/pkg/server"
 )
 
 func main() {

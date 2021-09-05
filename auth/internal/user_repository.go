@@ -7,6 +7,11 @@ import (
 	"github.com/todo-app/internal/domain"
 )
 
+type UserRepositoryInterface interface {
+	GetByEmail(email string) domain.User
+	Create(user *domain.User) (domain.User, error)
+}
+
 type UserRepo struct {
 	db *sqlx.DB
 }
