@@ -9,6 +9,7 @@ networks:
 
 services:
   authservice-postgres:
+    container_name: auth-pg
     image: postgres:13
     restart: on-failure
     env_file: 
@@ -20,7 +21,19 @@ services:
       - ./database/scripts:/docker-entrypoint-initdb.d/
     networks:
       - authservicenetwork
+  authservice-pgadmin:
+    container_name: auth-pgadmin
+    image: dpage/pgadmin4
+    restart: always
+    environment: 
+      PGADMIN_DEFAULT_EMAIL: admin@admin.com
+      PGADMIN_DEFAULT_PASSWORD: root
+    ports:
+    - "5050:80"
+    networks: 
+      - authservicenetwork
   authservice-api:
+    container_name: auth-api
     build:
       context: .
       dockerfile: Dockerfile
