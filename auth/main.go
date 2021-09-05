@@ -5,7 +5,7 @@ import (
 
 	"github.com/joho/godotenv"
 	"github.com/todo-app/api/router"
-	"github.com/todo-app/internal"
+	"github.com/todo-app/internal/application"
 	"github.com/todo-app/pkg/exithandler"
 	"github.com/todo-app/pkg/logger"
 	"github.com/todo-app/pkg/server"
@@ -17,7 +17,7 @@ func main() {
 		logger.Info.Panic("failed to load env vars")
 	}
 
-	app, err := internal.BootstrapApp()
+	app, err := application.BootstrapApp()
 
 	if err != nil {
 		logger.Error.Fatalf("Failed bootstrapping app -- error: %s", err.Error())

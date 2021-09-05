@@ -1,4 +1,4 @@
-package service
+package services
 
 import (
 	"errors"
@@ -15,7 +15,7 @@ type LoginRequest struct {
 }
 
 type IdentityServiceInterface interface {
-	HandleLogin(req *LoginRequest) (domain.User, error)
+	HandleLogin(req *LoginRequest) (string, error)
 }
 
 type IdentityService struct {

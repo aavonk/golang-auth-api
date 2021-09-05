@@ -7,6 +7,8 @@ import (
 	"net/http"
 
 	"github.com/todo-app/internal"
+
+	"github.com/todo-app/internal/application"
 	"github.com/todo-app/internal/domain"
 	"github.com/todo-app/internal/identity"
 )
@@ -97,6 +99,6 @@ func register(repo domain.UserRepository) http.HandlerFunc {
 
 }
 
-func Register(app *internal.App) http.HandlerFunc {
+func Register(app *application.App) http.HandlerFunc {
 	return register(app.UserRepository)
 }

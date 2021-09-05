@@ -7,10 +7,10 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/todo-app/api/handlers"
-	"github.com/todo-app/internal"
+	"github.com/todo-app/internal/application"
 )
 
-func Get(app *internal.App) *mux.Router {
+func Get(app *application.App) *mux.Router {
 	r := mux.NewRouter()
 	r.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
