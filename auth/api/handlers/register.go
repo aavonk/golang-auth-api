@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"encoding/json"
-	"errors"
 	"io/ioutil"
 	"net/http"
 
@@ -11,10 +10,10 @@ import (
 	"github.com/todo-app/internal/application"
 	"github.com/todo-app/internal/domain"
 	"github.com/todo-app/internal/identity"
-	"github.com/todo-app/internal/repositories"
+	"github.com/todo-app/internal/services"
 )
 
-func register(repo repositories.UserRepositoryInterface) http.HandlerFunc {
+func register(service services.IdentityServiceInterface) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 
@@ -34,35 +33,14 @@ func register(repo repositories.UserRepositoryInterface) http.HandlerFunc {
 			return
 		}
 
-		// Search for existing user
-		found := repo.GetByEmail(user.Email)
-
-		// If found isn't an empty user domain struct, then a user was found
-		// in the db by that email, return
-		if !found.IsEmpty() {
-			internal.ErrUnprocessableEntity(errors.New("account exists"), "account already exists").Send(w)
-			return
-		}
-
-		// validate that the user obj fits the domain and passes the
-		// requirements.
-		user.Prepare()
-		err = user.Validate()
+		createdUser, err := service.HandleRegister(&user)
 
 		if err != nil {
-			internal.ErrUnprocessableEntity(err, err.Error()).Send(w)
+			internal.ErrBadRequest(err, "Bad Request").Send(w)
 			return
 		}
 
-		// Reassign user variable to what is returned from creating a user in the DB
-		user, err = repo.Create(&user)
-
-		if err != nil {
-			internal.ErrInternalServer(err, "Internal server error").Send(w)
-			return
-		}
-
-		userResponse := user.ToHTTPResponse()
+		userResponse := createdUser.ToHTTPResponse()
 
 		err = identity.SetAndSaveSession(r, w, user)
 		if err != nil {
@@ -78,5 +56,5 @@ func register(repo repositories.UserRepositoryInterface) http.HandlerFunc {
 }
 
 func Register(app *application.App) http.HandlerFunc {
-	return register(app.UserRepository)
+	return register(app.IdentityService)
 }

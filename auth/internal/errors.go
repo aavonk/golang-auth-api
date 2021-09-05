@@ -35,6 +35,17 @@ func ErrInternalServer(err error, message string) *ErrResponse {
 	}
 }
 
+func ErrBadRequest(err error, message string) *ErrResponse {
+	logger.Error.Printf("Bad Request Error -- Received error: %v. User facing error message: %v", err, message)
+
+	return &ErrResponse{
+		Err:            err,
+		HTTPStatusCode: http.StatusBadRequest,
+		Message:        message,
+		ErrorText:      err.Error(),
+	}
+}
+
 func (e *ErrResponse) Send(w http.ResponseWriter) {
 	w.WriteHeader(e.HTTPStatusCode)
 	json.NewEncoder(w).Encode(map[string]string{"error": e.Message})

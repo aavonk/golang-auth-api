@@ -11,6 +11,7 @@ import (
 
 type IdentityServiceInterface interface {
 	HandleLogin(req *identity.LoginRequest) (domain.User, error)
+	HandleRegister(potentialUser *domain.User) (domain.User, error)
 }
 
 type IdentityService struct {
@@ -48,4 +49,28 @@ func (s *IdentityService) HandleLogin(req *identity.LoginRequest) (domain.User, 
 	}
 
 	return existingUser, nil
+}
+
+func (s *IdentityService) HandleRegister(potentialUser *domain.User) (domain.User, error) {
+	// Search for existing user
+	found := s.UserRepo.GetByEmail(potentialUser.Email)
+
+	if !found.IsEmpty() {
+		return domain.User{}, errors.New("account already exists")
+	}
+	var err error
+	potentialUser.Prepare()
+	err = potentialUser.Validate()
+
+	if err != nil {
+		return domain.User{}, err
+	}
+
+	newUser, err := s.UserRepo.Create(potentialUser)
+
+	if err != nil {
+		return domain.User{}, err
+	}
+
+	return newUser, nil
 }
