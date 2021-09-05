@@ -11,9 +11,10 @@ import (
 	"github.com/todo-app/internal/application"
 	"github.com/todo-app/internal/domain"
 	"github.com/todo-app/internal/identity"
+	"github.com/todo-app/internal/repositories"
 )
 
-func register(repo domain.UserRepository) http.HandlerFunc {
+func register(repo repositories.UserRepositoryInterface) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 

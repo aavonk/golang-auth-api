@@ -4,9 +4,8 @@ import (
 	"errors"
 
 	"github.com/jmoiron/sqlx"
-	"github.com/todo-app/internal"
-	"github.com/todo-app/internal/domain"
 	"github.com/todo-app/internal/identity"
+	"github.com/todo-app/internal/repositories"
 )
 
 type LoginRequest struct {
@@ -19,12 +18,12 @@ type IdentityServiceInterface interface {
 }
 
 type IdentityService struct {
-	UserRepo domain.UserRepository
+	UserRepo repositories.UserRepositoryInterface
 }
 
 func NewIdentityService(db *sqlx.DB) *IdentityService {
 	return &IdentityService{
-		UserRepo: internal.NewUserRepository(db),
+		UserRepo: repositories.NewUserRepository(db),
 	}
 }
 

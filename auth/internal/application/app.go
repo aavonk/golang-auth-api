@@ -2,6 +2,7 @@ package application
 
 import (
 	"github.com/todo-app/internal"
+	"github.com/todo-app/internal/repositories"
 	"github.com/todo-app/internal/services"
 	"github.com/todo-app/pkg/config"
 	"github.com/todo-app/pkg/logger"
@@ -10,7 +11,7 @@ import (
 type App struct {
 	DataStore       *internal.DataStore
 	Confg           *config.Confg
-	UserRepository  internal.UserRepositoryInterface
+	UserRepository  repositories.UserRepositoryInterface
 	IdentityService services.IdentityServiceInterface
 }
 
@@ -26,7 +27,7 @@ func BootstrapApp() (*App, error) {
 	return &App{
 		DataStore:       db, // TODO: take out -- db should only be accessed in repositories
 		Confg:           cfg,
-		UserRepository:  internal.NewUserRepository(db.Client),
+		UserRepository:  repositories.NewUserRepository(db.Client),
 		IdentityService: services.NewIdentityService(db.Client),
 	}, nil
 }
