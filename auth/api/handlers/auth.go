@@ -6,18 +6,10 @@ import (
 	"io/ioutil"
 	"net/http"
 
-	"github.com/gorilla/sessions"
 	"github.com/todo-app/internal"
 	"github.com/todo-app/internal/domain"
 )
 
-// func Register(userRespository domain.UserRepository) http.HandlerFunc {
-// 	return func(w http.ResponseWriter, r *http.Request) {
-// 		register(w, r)
-// 	}
-// }
-
-// TODO: Extract http error handling into package
 func register(repo domain.UserRepository) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
@@ -67,27 +59,18 @@ func register(repo domain.UserRepository) http.HandlerFunc {
 		}
 
 		// Generate a JWT
-		jwtClaims := internal.JWTClaims{
+		token, err := internal.NewToken(internal.JWTClaims{
 			UserId: user.ID,
 			Email:  user.Email,
-		}
-
-		token, err := internal.NewToken(jwtClaims)
+		})
 
 		if err != nil {
 			internal.ErrUnprocessableEntity(err, err.Error()).Send(w)
-
 			return
 		}
 
 		// Store the JWT on the session
-		session, err := internal.SessionStore.Get(r, "user-session")
-		session.Options = &sessions.Options{
-			// Path:     "/",
-			MaxAge:   86400 * 7, // one week
-			Secure:   true,
-			HttpOnly: true,
-		}
+		session, err := internal.NewSession(r, "user-session")
 
 		if err != nil {
 			internal.ErrInternalServer(err, "Internal server error").Send(w)
@@ -101,8 +84,10 @@ func register(repo domain.UserRepository) http.HandlerFunc {
 			internal.ErrInternalServer(err, "Internal server error").Send(w)
 			return
 		}
-		//token
 		userResponse := user.ToHTTPResponse()
+
+		//TODO: Email has not been confirmed - generate email token
+		// and send to email process
 
 		w.WriteHeader(http.StatusCreated)
 		json.NewEncoder(w).Encode(&userResponse)
