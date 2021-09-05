@@ -5,7 +5,6 @@ import (
 	"github.com/jmoiron/sqlx"
 
 	"github.com/todo-app/internal/domain"
-	"github.com/todo-app/internal/logger"
 )
 
 type UserRepo struct {
@@ -38,6 +37,9 @@ func NewUserRepository(db *sqlx.DB) *UserRepo {
 	}
 }
 
+// Get by email queries the DB for a certain user by email,
+// returning the user if found, and returning and empty user
+// domain model if not found.
 func (r *UserRepo) GetByEmail(email string) domain.User {
 	user := UserDBModel{}
 
@@ -46,7 +48,6 @@ func (r *UserRepo) GetByEmail(email string) domain.User {
 
 	if err != nil {
 		// No records were found, return empty user object
-		logger.Error.Print("error from GetByEmail Query: ", err)
 		return domain.User{}
 	}
 

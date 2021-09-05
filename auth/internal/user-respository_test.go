@@ -76,7 +76,10 @@ func TestMain(m *testing.M) {
 	}
 	os.Exit(code)
 }
-func TestUserRepositoryGetByEmail(t *testing.T) {
+
+// TestGetByemail tests whether the GetByEmail method of the user-repository correctly
+// returns a user when found from the database with a certain email
+func TestGetByEmail(t *testing.T) {
 	createUserTable(db, t)
 
 	users := []UserDBModel{
@@ -133,7 +136,143 @@ func TestUserRepositoryGetByEmail(t *testing.T) {
 	clearUserTable(db, t)
 }
 
-// Helpers
+// TestGetByEmailNotFound tests whether the GetByEmail method of the user-repository
+// successfully returns an empty domain User object when no user is found by the given email
+func TestGetByEmailNotFound(t *testing.T) {
+	// Apply the user schema to the db
+	createUserTable(db, t)
+	repository := NewUserRepository(db)
+
+	emails := []string{"aaron@gmail.com", "testing@test.com", "test1@gmail.com", "hello@test.com"}
+
+	for _, email := range emails {
+
+		// Since the DB will be empty, we should expect no users to be found no matter what
+		// email we provide
+		found := repository.GetByEmail(email)
+
+		if found.IsEmpty() != true {
+			t.Errorf("Found a user and returned. Got %+v, want %+v", found, domain.User{})
+		}
+	}
+	// Drop the user table for good measure
+	clearUserTable(db, t)
+}
+
+// TestUserCreate tests whether a user is successfully saved to the database
+// given a user domain object, and returns a user domain object.
+func TestUserCreate(t *testing.T) {
+
+	createUserTable(db, t)
+	repository := NewUserRepository(db)
+
+	users := []domain.User{
+		{
+			ID:        uuid.New(),
+			FirstName: "Aaron",
+			LastName:  "von Kreisler",
+			Email:     "aaron@email.com",
+			Password:  "password",
+		},
+		{
+			ID:        uuid.New(),
+			FirstName: "Billy",
+			LastName:  "Bob",
+			Email:     "billybob@email.com",
+			Password:  "password",
+		},
+		{
+			ID:        uuid.New(),
+			FirstName: "Test",
+			LastName:  "Testing",
+			Email:     "hello@testing.com",
+			Password:  "password",
+		},
+	}
+
+	for i, user := range users {
+		u, err := repository.Create(&user)
+
+		if err != nil {
+			t.Errorf("Failed to create user: %s", err)
+		}
+
+		if u.IsEmpty() {
+			t.Error("Returned an empty user object")
+		}
+
+		if u.ID != users[i].ID {
+			t.Errorf("Given userID does not match with received. Got %s want %s", u.ID, users[i].ID)
+		}
+
+		if u.FirstName != users[i].FirstName {
+			t.Errorf("Given FirstName does not match received FirstName. Got %s want %s", u.FirstName, users[i].FirstName)
+		}
+
+		if u.LastName != users[i].LastName {
+			t.Errorf("Given LastName does not match received LastName. Got %s want %s", u.LastName, users[i].LastName)
+
+		}
+		if u.Email != users[i].Email {
+			t.Errorf("Given Email does not match received Email. Got %s want %s", u.Email, users[i].Email)
+
+		}
+
+		// This check is different because if we give a password, it should NOT return the actual password,
+		// but rather it should return the encrypted version. Ex: given password of "password", the user returned from create
+		// should have a password of something like "asdf0978wklj2340usdfjhsf08734kjhsdf8".
+		if u.Password == users[i].Password {
+			t.Error("FAILED TO ENCRYPT USERS PASSWORD")
+		}
+	}
+
+	clearUserTable(db, t)
+}
+
+// TestUserCreateFailed tests whether the Create method handles invalid data
+// correctly and returns an empty user domain object along with the error
+func TestUserCreateFailed(t *testing.T) {
+	// We can simulate an error by NOT setting up the User table.
+	// By doing so, the db query will fail to execute and should return an error
+	repository := NewUserRepository(db)
+	users := []domain.User{
+		{
+			ID:        uuid.New(),
+			FirstName: "Aaron",
+			LastName:  "von Kreisler",
+			Email:     "aaron@email.com",
+			Password:  "password",
+		},
+		{
+			ID:        uuid.New(),
+			FirstName: "Billy",
+			LastName:  "Bob",
+			Email:     "billybob@email.com",
+			Password:  "password",
+		},
+		{
+			ID:        uuid.New(),
+			FirstName: "Test",
+			LastName:  "Testing",
+			Email:     "hello@testing.com",
+			Password:  "password",
+		},
+	}
+
+	for _, user := range users {
+		u, err := repository.Create(&user)
+
+		if err == nil {
+			t.Error("Expected an error, did not receive one")
+		}
+
+		if !u.IsEmpty() {
+			t.Errorf("Expected an empty user, received %+v", u)
+		}
+	}
+}
+
+// ---------------------  Helpers ---------------------------- //
 
 // createTestUser inserts into the database directly and does not
 // hash a password. Do NOT use this when testing the Create method on
