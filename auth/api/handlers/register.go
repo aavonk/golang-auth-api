@@ -42,7 +42,7 @@ func register(service services.IdentityServiceInterface) http.HandlerFunc {
 
 		userResponse := createdUser.ToHTTPResponse()
 
-		err = identity.SetAndSaveSession(r, w, user)
+		err = identity.SetCookie(w, user)
 		if err != nil {
 			internal.ErrInternalServer(err, "internal error message").Send(w)
 			return

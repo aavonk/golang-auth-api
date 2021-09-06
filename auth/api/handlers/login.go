@@ -41,10 +41,15 @@ func login(service services.IdentityServiceInterface) http.HandlerFunc {
 			return
 		}
 
-		err = identity.SetAndSaveSession(r, w, user)
-
+		// err = identity.SetAndSaveSession(r, w, user)
+		err = identity.SetCookie(w, user)
 		if err != nil {
 			internal.ErrInternalServer(err, "internal error message").Send(w)
+			return
+		}
+
+		if err != nil {
+			internal.ErrInternalServer(err, "internal server error").Send(w)
 			return
 		}
 

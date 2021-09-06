@@ -79,10 +79,64 @@ func TestMain(m *testing.M) {
 	os.Exit(code)
 }
 
+// TestGetById tests whether the GetById method of the user-repository successfully returns
+// a user domain object when a user is found, and an empty domain object when no record is found
+func TestGetById(t *testing.T) {
+	testutil.SetupUserTable(db)
+	repository := NewUserRepository(db)
+
+	users := []UserDBModel{
+		{
+			ID:             uuid.New(),
+			FirstName:      "Test",
+			LastName:       "NumberOne",
+			Email:          "test1@gmail.com",
+			Password:       "testing",
+			EmailConfirmed: false,
+		},
+		{
+			ID:             uuid.New(),
+			FirstName:      "Test",
+			LastName:       "NumberTwo",
+			Email:          "test2@gmail.com",
+			Password:       "testing2",
+			EmailConfirmed: false,
+		},
+		{
+			ID:             uuid.New(),
+			FirstName:      "Test",
+			LastName:       "NumberThree",
+			Email:          "test3@gmail.com",
+			Password:       "testing3",
+			EmailConfirmed: false,
+		},
+	}
+
+	// Generate users in the DB
+	for _, u := range users {
+		_, err := CreateTestUser(db, u)
+		if err != nil {
+			t.Errorf("Failed to create test users. Error: %v", err)
+		}
+	}
+
+	// Implement test
+	for _, user := range users {
+		found := repository.GetById(user.ID.String())
+
+		if found.IsEmpty() {
+			t.Errorf("Failed to find user. Expected: %+v \t Got: %+v", user, found)
+		}
+	}
+
+	testutil.TeardownUserTable(db, t)
+}
+
 // TestGetByemail tests whether the GetByEmail method of the user-repository correctly
 // returns a user when found from the database with a certain email
 func TestGetByEmail(t *testing.T) {
 	testutil.SetupUserTable(db)
+	repository := NewUserRepository(db)
 
 	users := []UserDBModel{
 		{
@@ -117,7 +171,6 @@ func TestGetByEmail(t *testing.T) {
 		if err != nil {
 			t.Error("Failed to create test user")
 		}
-		repository := NewUserRepository(db)
 
 		// See if the user we previously created exists
 		existing := repository.GetByEmail(created.Email)
@@ -275,7 +328,8 @@ func TestUserCreateFailed(t *testing.T) {
 }
 
 // ---------------------  Helpers ---------------------------- //
-
+// CreateTestUser is a helper function that inserts a user to the DB given a UserDBModel.
+// Note: It does NOT hash passwords.
 func CreateTestUser(db *sqlx.DB, model UserDBModel) (domain.User, error) {
 
 	_, err := db.NamedExec(`INSERT INTO users (id, first_name, last_name, email, password, email_confirmed)

@@ -10,6 +10,7 @@ import (
 type UserRepositoryInterface interface {
 	GetByEmail(email string) domain.User
 	Create(user *domain.User) (domain.User, error)
+	GetById(id string) domain.User
 }
 
 type UserRepo struct {
@@ -80,4 +81,16 @@ func (r *UserRepo) Create(user *domain.User) (domain.User, error) {
 
 	// Find out how to return the user
 	return model.ToDomain(), nil
+}
+
+func (r *UserRepo) GetById(id string) domain.User {
+	user := UserDBModel{}
+
+	err := r.db.Get(&user, "SELECT * FROM users WHERE id=$1", id)
+
+	if err != nil {
+		return domain.User{}
+	}
+
+	return user.ToDomain()
 }
