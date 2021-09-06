@@ -80,10 +80,10 @@ func TestMain(m *testing.M) {
 	os.Exit(code)
 }
 
-// Test user login should should return the user if login is successful
+// TestHandleLogin should should return the user if login is successful
 // and an error if not.
-func TestHandleLoginFail(t *testing.T) {
-	testutil.SetupUserTable(db, t)
+func TestHandleLogin(t *testing.T) {
+	testutil.SetupUserTable(db)
 	service := NewIdentityService(db)
 
 	password := "supersecret"
@@ -108,6 +108,8 @@ func TestHandleLoginFail(t *testing.T) {
 	}
 
 	// End Setup -- begin assertions
+	// Check that the service returns an empty user and an error
+	// given the wrong password
 	for _, u := range users {
 		request := identity.LoginRequest{
 			Email:     u.Email,
@@ -119,16 +121,134 @@ func TestHandleLoginFail(t *testing.T) {
 		// We expect both user to be empty and an error returned
 		// since the wrong password was given for each one
 		if !user.IsEmpty() {
-			t.Error("Handle login failed to return user")
+			t.Error("HandleLogin incorrectly returned a user given the wrong password")
 		}
 
 		if err == nil {
-			t.Errorf("Received error: %s", err)
+			t.Errorf("Received error while logging in with incorrect password: %v", err)
+		}
+
+	}
+
+	// Check that the service returns the user object and no error
+	// given the correct email/password
+	for _, u := range users {
+		request := identity.LoginRequest{
+			Email:     u.Email,
+			Passsword: password,
+		}
+
+		user, err := service.HandleLogin(&request)
+
+		if user.IsEmpty() {
+			t.Errorf("HandleLogin returned empty user. Expected: %+v", u)
+		}
+
+		if err != nil {
+			t.Errorf("Received error while logging in with correct password: %v", err)
+		}
+	}
+
+	testutil.TeardownUserTable(db, t)
+}
+
+// TestHandleRegistration should return the user object is registration
+// is successful and an error if not. There are many points where registration might fail e.g.
+// - request does not pass model validation (password requirement, invalid email, etc.)
+// - There is already an existing account with the requested email
+// - There is an error inserting the record into the database
+func TestHandleRegistration(t *testing.T) {
+	testutil.SetupUserTable(db)
+	service := NewIdentityService(db)
+	// password := "password"
+
+	type options struct {
+		ShouldFail           bool
+		Reason               string
+		User                 domain.User
+		CreateUserBeforeTest bool
+	}
+	items := []options{
+		{
+			ShouldFail:           true,
+			CreateUserBeforeTest: false,
+			Reason:               "[Model Validation]-Password doesn't meet requirements",
+			User: domain.User{
+				ID:        uuid.New(),
+				FirstName: "Test",
+				LastName:  "Testing",
+				Email:     testutil.MakeRandEmail(),
+				Password:  "1234",
+			},
+		},
+		{
+			ShouldFail:           true,
+			CreateUserBeforeTest: false,
+			Reason:               "[Model Validation]-Invalid email provided",
+			User: domain.User{
+				ID:        uuid.New(),
+				FirstName: "Test",
+				LastName:  "Test",
+				Email:     "email.com",
+				Password:  "password",
+			},
+		},
+		{
+			ShouldFail:           false,
+			CreateUserBeforeTest: false,
+			Reason:               "Should not fail",
+			User: domain.User{
+				ID:        uuid.New(),
+				FirstName: "Test",
+				LastName:  "Test",
+				Email:     "test@testing.com",
+				Password:  "longpassword",
+			},
+		},
+		{
+			ShouldFail:           true,
+			CreateUserBeforeTest: true,
+			Reason:               "[Existing user] - User with same email already exists. Should fail",
+			User: domain.User{
+				ID:        uuid.New(),
+				FirstName: "Test",
+				LastName:  "Test",
+				Email:     "aaron@testing.com",
+				Password:  "password",
+			},
+		},
+	}
+
+	for _, item := range items {
+		// If we create a user before the actua test implementation is passed,
+		// the test case should fail because there will be an existing user in the
+		// database with the same email. This creates that user, and then allows
+		// the rest of the test case to continue.
+		if item.CreateUserBeforeTest {
+			_, err := service.HandleRegister(&item.User)
+			if err != nil {
+				t.Errorf("Failed creating user before tests. Error: %v", err)
+			}
+		}
+
+		user, err := service.HandleRegister(&item.User)
+
+		// If the test case is supposed to fail, and no error is present
+		// something went wrong
+		if (item.ShouldFail && err == nil) || (item.ShouldFail && !user.IsEmpty()) {
+			t.Errorf("Item was supposed to fail but did not. Reason that it was supposed to fail: %s", item.Reason)
+		}
+
+		// If the test is supposed to pass and there is an error, or the user returned is empty
+		// then something went wrong.
+		if (!item.ShouldFail && err != nil) || (!item.ShouldFail && user.IsEmpty()) {
+			t.Errorf("Was not supposed to fail but did. Error: %s. Reason supposed to fail %s", err, item.Reason)
 		}
 
 	}
 
 	testutil.TeardownUserTable(db, t)
+
 }
 
 // ---------------------  Helpers ---------------------------- //

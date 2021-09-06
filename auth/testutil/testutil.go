@@ -2,7 +2,6 @@ package testutil
 
 import (
 	"fmt"
-	"log"
 	"math/rand"
 	"testing"
 	"time"
@@ -10,7 +9,7 @@ import (
 	"github.com/jmoiron/sqlx"
 )
 
-func SetupUserTable(db *sqlx.DB, t *testing.T) {
+func SetupUserTable(db *sqlx.DB) {
 	var schema = `
 	CREATE TABLE IF NOT EXISTS "users" (
 		"id" TEXT NOT NULL,
@@ -23,8 +22,9 @@ func SetupUserTable(db *sqlx.DB, t *testing.T) {
 		PRIMARY KEY ("id")
 	);
 	`
-	log.Println("**** Creating User Table ****")
+	// log.Println("**** Creating User Table ****")
 	db.MustExec(schema)
+
 }
 
 // Removes the table from the test db
@@ -33,7 +33,7 @@ func TeardownUserTable(db *sqlx.DB, t *testing.T) {
 	if err != nil {
 		t.Error("Failed to clear user table")
 	}
-	log.Println("**** Successfully Dropped User Table ****")
+	// log.Println("**** Successfully Dropped User Table ****")
 
 }
 

@@ -82,7 +82,7 @@ func TestMain(m *testing.M) {
 // TestGetByemail tests whether the GetByEmail method of the user-repository correctly
 // returns a user when found from the database with a certain email
 func TestGetByEmail(t *testing.T) {
-	testutil.SetupUserTable(db, t)
+	testutil.SetupUserTable(db)
 
 	users := []UserDBModel{
 		{
@@ -142,7 +142,7 @@ func TestGetByEmail(t *testing.T) {
 // successfully returns an empty domain User object when no user is found by the given email
 func TestGetByEmailNotFound(t *testing.T) {
 	// Apply the user schema to the db
-	testutil.SetupUserTable(db, t)
+	testutil.SetupUserTable(db)
 	repository := NewUserRepository(db)
 
 	emails := []string{"aaron@gmail.com", "testing@test.com", "test1@gmail.com", "hello@test.com"}
@@ -165,7 +165,7 @@ func TestGetByEmailNotFound(t *testing.T) {
 // given a user domain object, and returns a user domain object.
 func TestUserCreate(t *testing.T) {
 
-	testutil.SetupUserTable(db, t)
+	testutil.SetupUserTable(db)
 	repository := NewUserRepository(db)
 
 	users := []domain.User{
