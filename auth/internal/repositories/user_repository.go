@@ -25,7 +25,6 @@ type UserDBModel struct {
 	EmailConfirmed bool      `db:"email_confirmed"`
 }
 
-// TODO: Remove password from domain model so its not passed through code and accidentally returned?
 func (m *UserDBModel) ToDomain() domain.User {
 	return domain.User{
 		ID:        m.ID,

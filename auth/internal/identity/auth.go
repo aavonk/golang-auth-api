@@ -76,6 +76,7 @@ func newToken(claims JWTClaims) (string, error) {
 
 	return tokenString, nil
 }
+
 func newSession(r *http.Request, sessionName string) (*sessions.Session, error) {
 	sess, err := SessionStore.Get(r, sessionName)
 

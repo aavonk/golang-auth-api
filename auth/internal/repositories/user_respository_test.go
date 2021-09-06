@@ -11,10 +11,12 @@ import (
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
+
 	"github.com/ory/dockertest/v3"
 	"github.com/ory/dockertest/v3/docker"
 
 	"github.com/todo-app/internal/domain"
+	"github.com/todo-app/testutil"
 )
 
 var db *sqlx.DB
@@ -80,7 +82,7 @@ func TestMain(m *testing.M) {
 // TestGetByemail tests whether the GetByEmail method of the user-repository correctly
 // returns a user when found from the database with a certain email
 func TestGetByEmail(t *testing.T) {
-	createUserTable(db, t)
+	testutil.SetupUserTable(db, t)
 
 	users := []UserDBModel{
 		{
@@ -110,7 +112,7 @@ func TestGetByEmail(t *testing.T) {
 	}
 
 	for _, user := range users {
-		created, err := createTestUser(db, &user)
+		created, err := CreateTestUser(db, user)
 
 		if err != nil {
 			t.Error("Failed to create test user")
@@ -133,14 +135,14 @@ func TestGetByEmail(t *testing.T) {
 		}
 	}
 
-	clearUserTable(db, t)
+	testutil.TeardownUserTable(db, t)
 }
 
 // TestGetByEmailNotFound tests whether the GetByEmail method of the user-repository
 // successfully returns an empty domain User object when no user is found by the given email
 func TestGetByEmailNotFound(t *testing.T) {
 	// Apply the user schema to the db
-	createUserTable(db, t)
+	testutil.SetupUserTable(db, t)
 	repository := NewUserRepository(db)
 
 	emails := []string{"aaron@gmail.com", "testing@test.com", "test1@gmail.com", "hello@test.com"}
@@ -156,14 +158,14 @@ func TestGetByEmailNotFound(t *testing.T) {
 		}
 	}
 	// Drop the user table for good measure
-	clearUserTable(db, t)
+	testutil.TeardownUserTable(db, t)
 }
 
 // TestUserCreate tests whether a user is successfully saved to the database
 // given a user domain object, and returns a user domain object.
 func TestUserCreate(t *testing.T) {
 
-	createUserTable(db, t)
+	testutil.SetupUserTable(db, t)
 	repository := NewUserRepository(db)
 
 	users := []domain.User{
@@ -226,7 +228,7 @@ func TestUserCreate(t *testing.T) {
 		}
 	}
 
-	clearUserTable(db, t)
+	testutil.TeardownUserTable(db, t)
 }
 
 // TestUserCreateFailed tests whether the Create method handles invalid data
@@ -274,10 +276,7 @@ func TestUserCreateFailed(t *testing.T) {
 
 // ---------------------  Helpers ---------------------------- //
 
-// createTestUser inserts into the database directly and does not
-// hash a password. Do NOT use this when testing the Create method on
-// the user repository
-func createTestUser(db *sqlx.DB, model *UserDBModel) (domain.User, error) {
+func CreateTestUser(db *sqlx.DB, model UserDBModel) (domain.User, error) {
 
 	_, err := db.NamedExec(`INSERT INTO users (id, first_name, last_name, email, password, email_confirmed)
 	 VALUES (:id, :first_name, :last_name, :email, :password, :email_confirmed)`, model)
@@ -287,32 +286,4 @@ func createTestUser(db *sqlx.DB, model *UserDBModel) (domain.User, error) {
 	}
 
 	return model.ToDomain(), nil
-}
-
-// Applies the user schema to the test db
-func createUserTable(db *sqlx.DB, t *testing.T) {
-	var schema = `
-	CREATE TABLE IF NOT EXISTS "users" (
-		"id" TEXT NOT NULL,
-		"first_name" VARCHAR(50) NOT NULL,
-		"last_name" VARCHAR(80) NOT NULL,
-		"email" TEXT NOT NULL UNIQUE,
-		"email_confirmed" BOOLEAN NOT NULL DEFAULT false,
-		"password" TEXT NOT NULL,
-
-		PRIMARY KEY ("id")
-	);
-	`
-	log.Println("**** Creating User Table ****")
-	db.MustExec(schema)
-}
-
-// Removes the table from the test db
-func clearUserTable(db *sqlx.DB, t *testing.T) {
-	_, err := db.Exec(`DROP TABLE IF EXISTS "users"`)
-	if err != nil {
-		t.Error("Failed to clear user table")
-	}
-	log.Println("**** Successfully Dropped User Table ****")
-
 }
