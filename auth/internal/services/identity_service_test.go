@@ -251,6 +251,31 @@ func TestHandleRegistration(t *testing.T) {
 
 }
 
+func TestUserById(t *testing.T) {
+	testutil.SetupUserTable(db)
+	service := NewIdentityService(db)
+	want, _ := createTestUser(db, &repositories.UserDBModel{
+		ID:             uuid.New(),
+		FirstName:      "Hello",
+		LastName:       "Goodbye",
+		Email:          "email@email.com",
+		Password:       "secretpass",
+		EmailConfirmed: false,
+	}, t)
+
+	got := service.GetUserById(want.ID.String())
+
+	if got.IsEmpty() {
+		t.Errorf("Failed to get user")
+	}
+
+	if got != want {
+		t.Errorf("got %+v, wanted %+v", got, want)
+	}
+
+	testutil.TeardownUserTable(db, t)
+}
+
 // ---------------------  Helpers ---------------------------- //
 
 func createTestUser(db *sqlx.DB, model *repositories.UserDBModel, t *testing.T) (domain.User, error) {

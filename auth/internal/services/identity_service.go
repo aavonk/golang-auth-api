@@ -12,15 +12,16 @@ import (
 type IdentityServiceInterface interface {
 	HandleLogin(req *identity.LoginRequest) (domain.User, error)
 	HandleRegister(potentialUser *domain.User) (domain.User, error)
+	GetUserById(id string) (domain.User, error)
 }
 
 type IdentityService struct {
-	UserRepo repositories.UserRepositoryInterface
+	userRepo repositories.UserRepositoryInterface
 }
 
 func NewIdentityService(db *sqlx.DB) *IdentityService {
 	return &IdentityService{
-		UserRepo: repositories.NewUserRepository(db),
+		userRepo: repositories.NewUserRepository(db),
 	}
 }
 
@@ -28,7 +29,7 @@ func NewIdentityService(db *sqlx.DB) *IdentityService {
 // error.
 func (s *IdentityService) HandleLogin(req *identity.LoginRequest) (domain.User, error) {
 	// Does a user with this email exist? If not, respond with error
-	existingUser := s.UserRepo.GetByEmail(req.Email)
+	existingUser := s.userRepo.GetByEmail(req.Email)
 
 	// if user is emoty, then no user was found -- invalid credentials
 	if existingUser.IsEmpty() {
@@ -51,9 +52,14 @@ func (s *IdentityService) HandleLogin(req *identity.LoginRequest) (domain.User, 
 	return existingUser, nil
 }
 
+// HandleRegister processes the register request. If the request is denied - the email is taken,
+// the password doesn't meet strength criteria, etc. - and empty user object and an error is returned.
+// If it passes the checks, a new user is inserted into the database and returned.
+// The potentialUser param must be a pointer to a domain.User struct so that the password
+// can be hashed.
 func (s *IdentityService) HandleRegister(potentialUser *domain.User) (domain.User, error) {
 	// Search for existing user
-	found := s.UserRepo.GetByEmail(potentialUser.Email)
+	found := s.userRepo.GetByEmail(potentialUser.Email)
 
 	if !found.IsEmpty() {
 		return domain.User{}, errors.New("account already exists")
@@ -66,11 +72,17 @@ func (s *IdentityService) HandleRegister(potentialUser *domain.User) (domain.Use
 		return domain.User{}, err
 	}
 
-	newUser, err := s.UserRepo.Create(potentialUser)
+	newUser, err := s.userRepo.Create(potentialUser)
 
 	if err != nil {
 		return domain.User{}, err
 	}
 
 	return newUser, nil
+}
+
+func (s *IdentityService) GetUserById(id string) domain.User {
+
+	return s.userRepo.GetById(id)
+
 }
