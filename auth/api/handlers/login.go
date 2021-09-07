@@ -24,7 +24,6 @@ func login(service services.IdentityServiceInterface) http.HandlerFunc {
 			internal.ErrUnprocessableEntity(err, "cannot parse body").Send(w)
 			return
 		}
-
 		var loginReq identity.LoginRequest
 
 		err = json.Unmarshal(body, &loginReq)

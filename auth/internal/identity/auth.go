@@ -1,6 +1,7 @@
 package identity
 
 import (
+	"context"
 	"net/http"
 	"os"
 
@@ -21,7 +22,6 @@ var (
 
 func init() {
 	SessionStore = sessions.NewCookieStore([]byte(os.Getenv("SESSION_KEY")))
-
 	SessionStore.Options = &sessions.Options{
 		Path:     "/",
 		MaxAge:   86400 * 7, // one week
@@ -63,6 +63,11 @@ func newToken(claims JWTClaims) (string, error) {
 	}
 	return tokenString, nil
 }
+
+// ExtractClaimsFromToken parses a JWT token into a JWTClaims struct
+// which should include a UserId and Email value. If there is an error
+// parsing the token, the error is return and an empty JWTClaims struct is returned
+// as well.
 func ExtractClaimsFromToken(tokenString string) (JWTClaims, error) {
 	token, err := jwt.ParseWithClaims(tokenString, &JWTClaims{}, func(token *jwt.Token) (interface{}, error) {
 		return []byte(os.Getenv("JWT_SECRET")), nil
@@ -107,7 +112,11 @@ func SetCookie(w http.ResponseWriter, user domain.User) error {
 	return nil
 }
 
-func GetCookie(r *http.Request) (string, error) {
+// GetTokenFromCookie extracts a cookie from the request named "auth-session"
+// If not present, it will return an error and an emtpy string.
+// Once we verify that the cookie is present, we decode it, which should
+// contain a key value pair of "jwt": "{JSON web token}".
+func GetTokenFromCookie(r *http.Request) (string, error) {
 
 	value := make(map[string]string)
 
@@ -121,7 +130,17 @@ func GetCookie(r *http.Request) (string, error) {
 		logger.Error.Println("Error Decoding cookie", err)
 		return "", err
 	}
-	userId := value["token"]
-	return userId, nil
+	token := value["token"]
+	return token, nil
+}
 
+var UserCtxKey = &authContextKey{"user"}
+
+type authContextKey struct {
+	name string
+}
+
+func GetClaimsFromContext(ctx context.Context) (JWTClaims, bool) {
+	raw, ok := ctx.Value(UserCtxKey).(JWTClaims)
+	return raw, ok
 }

@@ -19,12 +19,14 @@ func Get(app *application.App) *mux.Router {
 		json.NewEncoder(w).Encode(map[string]string{"status": "OK", "time": time.Now().UTC().String()})
 	})
 
+	// authMiddleware := alice.New(middleware.AuthenticationMiddleware)
 	r.HandleFunc("/register", handlers.Register(app)).Methods("POST")
 	r.HandleFunc("/signin", handlers.Login(app)).Methods("POST")
-	r.HandleFunc("/currentuser", handlers.GetCurrentUser(app)).Methods("GET")
-
+	r.HandleFunc("/currentuser", middleware.AuthenticationMiddleware(handlers.GetCurrentUser(app))).Methods("GET")
 	http.Handle("/", r)
+	// Standard Middlewares applied on every request
 	r.Use(middleware.SecureHeaders)
 	r.Use(middleware.RequestLog)
+	r.Use(middleware.PanicRecovery)
 	return r
 }

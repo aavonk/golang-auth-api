@@ -46,6 +46,17 @@ func ErrBadRequest(err error, message string) *ErrResponse {
 	}
 }
 
+func ErrUnauthorized(err error, message string) *ErrResponse {
+	logger.Error.Printf("Unauthorized Error -- Received error: %v. User facing error message: %v", err, message)
+
+	return &ErrResponse{
+		Err:            err,
+		HTTPStatusCode: http.StatusUnauthorized,
+		Message:        message,
+		ErrorText:      err.Error(),
+	}
+}
+
 func (e *ErrResponse) Send(w http.ResponseWriter) {
 	w.WriteHeader(e.HTTPStatusCode)
 	json.NewEncoder(w).Encode(map[string]string{"error": e.Message})

@@ -2,8 +2,10 @@ package handlers
 
 import (
 	"encoding/json"
+	"errors"
 	"net/http"
 
+	"github.com/todo-app/internal"
 	"github.com/todo-app/internal/application"
 	"github.com/todo-app/internal/identity"
 	"github.com/todo-app/internal/services"
@@ -19,23 +21,16 @@ func getCurrentUser(service services.IdentityServiceInterface) http.HandlerFunc 
 	return func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 
-		cookieValue, err := identity.GetCookie(r)
-
-		if err != nil {
-			logger.Error.Println(err)
+		claims, ok := identity.GetClaimsFromContext(r.Context())
+		if !ok {
+			internal.ErrBadRequest(errors.New("failed to get claims from request context"), "bad request").Send(w)
 			return
 		}
 
-		claims, err := identity.ExtractClaimsFromToken(cookieValue)
-		if err != nil {
-			w.WriteHeader(http.StatusBadRequest)
-			logger.Error.Println(err)
-			return
-		}
-
+		// user, err := service.GetById()
 		logger.Info.Printf("Claims: %+v", claims)
 
 		w.WriteHeader(http.StatusOK)
-		json.NewEncoder(w).Encode(cookieValue)
+		json.NewEncoder(w).Encode(map[string]string{"Success": "true"})
 	}
 }
