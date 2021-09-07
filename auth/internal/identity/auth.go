@@ -52,6 +52,8 @@ func ComparePasswords(hashedPassword, suppliedPassword []byte) error {
 	return bcrypt.CompareHashAndPassword(hashedPassword, suppliedPassword)
 }
 
+// TODO: Add Expiration date on token
+
 func newToken(claims JWTClaims) (string, error) {
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
@@ -83,6 +85,7 @@ func ExtractClaimsFromToken(tokenString string) (JWTClaims, error) {
 	}
 }
 
+// TODO: Add Expiration date on cookie
 func SetCookie(w http.ResponseWriter, user domain.User) error {
 	token, err := newToken(JWTClaims{
 		UserId: user.ID,
@@ -101,11 +104,16 @@ func SetCookie(w http.ResponseWriter, user domain.User) error {
 		return err
 	}
 	cookie := &http.Cookie{
-		Name:     "auth-session",
-		Value:    encoded,
-		Path:     "/",
+		Name:  "auth-session",
+		Value: encoded,
+		Path:  "/",
+		// Domain:     "",
+		// Expires:    time.Time{},
+		// MaxAge:     0,
 		Secure:   true,
 		HttpOnly: true,
+		// SameSite:   0,
+		Unparsed: []string{},
 	}
 	http.SetCookie(w, cookie)
 
