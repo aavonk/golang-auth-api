@@ -7,6 +7,7 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/todo-app/api/handlers"
+	"github.com/todo-app/api/middleware"
 	"github.com/todo-app/internal/application"
 )
 
@@ -23,5 +24,7 @@ func Get(app *application.App) *mux.Router {
 	r.HandleFunc("/currentuser", handlers.GetCurrentUser(app)).Methods("GET")
 
 	http.Handle("/", r)
+	r.Use(middleware.SecureHeaders)
+	r.Use(middleware.RequestLog)
 	return r
 }

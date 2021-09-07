@@ -6,6 +6,6 @@ import (
 )
 
 var (
-	Info  = log.New(os.Stdout, "[ AUTH-SERVICE :: INFO ] \t", log.Ldate|log.Ltime)
-	Error = log.New(os.Stderr, "[ AUTH-SERVICE :: ERROR ] \t", log.Ldate|log.Ltime|log.Lshortfile)
+	Info  = log.New(os.Stdout, "[ INFO ] \t", log.Ldate|log.Ltime)
+	Error = log.New(os.Stderr, "[ ERROR ] \t", log.Ldate|log.Ltime|log.Lshortfile)
 )

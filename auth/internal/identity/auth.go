@@ -61,7 +61,6 @@ func newToken(claims JWTClaims) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	logger.Info.Printf("Created token: %s", tokenString)
 	return tokenString, nil
 }
 func ExtractClaimsFromToken(tokenString string) (JWTClaims, error) {
@@ -75,7 +74,6 @@ func ExtractClaimsFromToken(tokenString string) (JWTClaims, error) {
 
 	} else {
 		// return an error
-		logger.Error.Printf("Error mapping JWT claims")
 		return JWTClaims{}, err
 	}
 }
