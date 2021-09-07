@@ -327,6 +327,57 @@ func TestUserCreateFailed(t *testing.T) {
 	}
 }
 
+func TestGetUserById(t *testing.T) {
+	repository := NewUserRepository(db)
+	testutil.SetupUserTable(db)
+	users := []UserDBModel{
+		{
+			ID:             uuid.New(),
+			FirstName:      "Test user",
+			LastName:       "testing",
+			Email:          "testing1@test.com",
+			Password:       "password",
+			EmailConfirmed: false,
+		},
+		{
+			ID:             uuid.New(),
+			FirstName:      "testing",
+			LastName:       "testing",
+			Email:          "testing2@yahoo.com",
+			Password:       "password",
+			EmailConfirmed: false,
+		},
+		{
+			ID:             uuid.New(),
+			FirstName:      "test",
+			LastName:       "testing",
+			Email:          "testing2@hotmail.com",
+			Password:       "password",
+			EmailConfirmed: false,
+		},
+	}
+
+	for _, u := range users {
+		want, err := CreateTestUser(db, u)
+		if err != nil {
+			t.Errorf("Failed creating users in db\n %v", err)
+		}
+
+		got := repository.GetById(want.ID.String())
+
+		if got.IsEmpty() {
+			t.Error("Returned an empty user. Expected a found user")
+		}
+
+		if want.ID.String() != got.ID.String() {
+			t.Errorf("Returned the wrong user. wanted ID: %s, got %s ", want.ID.String(), got.ID.String())
+		}
+
+	}
+
+	testutil.TeardownUserTable(db, t)
+}
+
 // ---------------------  Helpers ---------------------------- //
 // CreateTestUser is a helper function that inserts a user to the DB given a UserDBModel.
 // Note: It does NOT hash passwords.
