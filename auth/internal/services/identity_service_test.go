@@ -87,66 +87,62 @@ func TestHandleLogin(t *testing.T) {
 	service := NewIdentityService(db)
 
 	password := "supersecret"
+	createdUser, err := createTestUser(db, &repositories.UserDBModel{
+		ID:             uuid.New(),
+		FirstName:      "Hello",
+		LastName:       "Goodbye",
+		Email:          "email@email.com",
+		Password:       password,
+		EmailConfirmed: false,
+	}, t)
 
-	var users []domain.User
-
-	for i := 0; i < 5; i++ {
-		u, err := createTestUser(db, &repositories.UserDBModel{
-			ID:             uuid.New(),
-			FirstName:      "Aaron",
-			LastName:       "testing",
-			Email:          testutil.MakeRandEmail(),
-			Password:       password,
-			EmailConfirmed: false,
-		}, t)
-
-		if err != nil {
-			t.Errorf("Error: %s", err)
-			t.Error("Failed creating test users")
-		}
-		users = append(users, u)
+	if err != nil {
+		t.Fatal("failed to create test user")
 	}
 
-	// End Setup -- begin assertions
-	// Check that the service returns an empty user and an error
-	// given the wrong password
-	for _, u := range users {
-		request := identity.LoginRequest{
-			Email:     u.Email,
-			Passsword: "wrong password",
-		}
-
-		user, err := service.HandleLogin(&request)
-
-		// We expect both user to be empty and an error returned
-		// since the wrong password was given for each one
-		if !user.IsEmpty() {
-			t.Error("HandleLogin incorrectly returned a user given the wrong password")
-		}
-
-		if err == nil {
-			t.Errorf("Received error while logging in with incorrect password: %v", err)
-		}
-
+	tests := []struct {
+		name       string
+		request    *identity.LoginRequest
+		shouldPass bool
+	}{
+		{
+			name: "Incorrect email",
+			request: &identity.LoginRequest{
+				Email:     "randomemail@email.com",
+				Passsword: password,
+			},
+			shouldPass: false,
+		},
+		{
+			name: "Correct email, wrong password",
+			request: &identity.LoginRequest{
+				Email:     createdUser.Email,
+				Passsword: password,
+			},
+			shouldPass: false,
+		},
+		{
+			name: "Correct Email & Password",
+			request: &identity.LoginRequest{
+				Email:     "email@email.com",
+				Passsword: password,
+			},
+			shouldPass: true,
+		},
 	}
 
-	// Check that the service returns the user object and no error
-	// given the correct email/password
-	for _, u := range users {
-		request := identity.LoginRequest{
-			Email:     u.Email,
-			Passsword: password,
-		}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			u, err := service.HandleLogin(tt.request)
 
-		user, err := service.HandleLogin(&request)
+			if err != nil && tt.shouldPass {
+				t.Errorf("Failedl login with error %v", err)
+			}
 
-		if user.IsEmpty() {
-			t.Errorf("HandleLogin returned empty user. Expected: %+v", u)
-		}
-
-		if err != nil {
-			t.Errorf("Received error while logging in with correct password: %v", err)
-		}
+			if u.IsEmpty() && tt.shouldPass {
+				t.Errorf("Expected a user returned, but got isEmpty")
+			}
+		})
 	}
 
 	testutil.TeardownUserTable(db, t)
@@ -167,11 +163,13 @@ func TestHandleRegistration(t *testing.T) {
 		Reason               string
 		User                 domain.User
 		CreateUserBeforeTest bool
+		Name                 string
 	}
 	items := []options{
 		{
 			ShouldFail:           true,
 			CreateUserBeforeTest: false,
+			Name:                 "Bad password",
 			Reason:               "[Model Validation]-Password doesn't meet requirements",
 			User: domain.User{
 				ID:        uuid.New(),
@@ -184,6 +182,7 @@ func TestHandleRegistration(t *testing.T) {
 		{
 			ShouldFail:           true,
 			CreateUserBeforeTest: false,
+			Name:                 "Invalid Email",
 			Reason:               "[Model Validation]-Invalid email provided",
 			User: domain.User{
 				ID:        uuid.New(),
@@ -197,6 +196,7 @@ func TestHandleRegistration(t *testing.T) {
 			ShouldFail:           false,
 			CreateUserBeforeTest: false,
 			Reason:               "Should not fail",
+			Name:                 "Valid",
 			User: domain.User{
 				ID:        uuid.New(),
 				FirstName: "Test",
@@ -208,6 +208,7 @@ func TestHandleRegistration(t *testing.T) {
 		{
 			ShouldFail:           true,
 			CreateUserBeforeTest: true,
+			Name:                 "Existing user",
 			Reason:               "[Existing user] - User with same email already exists. Should fail",
 			User: domain.User{
 				ID:        uuid.New(),
@@ -220,30 +221,33 @@ func TestHandleRegistration(t *testing.T) {
 	}
 
 	for _, item := range items {
-		// If we create a user before the actua test implementation is passed,
-		// the test case should fail because there will be an existing user in the
-		// database with the same email. This creates that user, and then allows
-		// the rest of the test case to continue.
-		if item.CreateUserBeforeTest {
-			_, err := service.HandleRegister(&item.User)
-			if err != nil {
-				t.Errorf("Failed creating user before tests. Error: %v", err)
+		t.Run(item.Name, func(t *testing.T) {
+			// If we create a user before the actua test implementation is passed,
+			// the test case should fail because there will be an existing user in the
+			// database with the same email. This creates that user, and then allows
+			// the rest of the test case to continue.
+			if item.CreateUserBeforeTest {
+				_, err := service.HandleRegister(&item.User)
+				if err != nil {
+					t.Errorf("Failed creating user before tests. Error: %v", err)
+				}
 			}
-		}
 
-		user, err := service.HandleRegister(&item.User)
+			user, err := service.HandleRegister(&item.User)
 
-		// If the test case is supposed to fail, and no error is present
-		// something went wrong
-		if (item.ShouldFail && err == nil) || (item.ShouldFail && !user.IsEmpty()) {
-			t.Errorf("Item was supposed to fail but did not. Reason that it was supposed to fail: %s", item.Reason)
-		}
+			// If the test case is supposed to fail, and no error is present
+			// something went wrong
+			if (item.ShouldFail && err == nil) || (item.ShouldFail && !user.IsEmpty()) {
+				t.Errorf("Item was supposed to fail but did not. Reason that it was supposed to fail: %s", item.Reason)
+			}
 
-		// If the test is supposed to pass and there is an error, or the user returned is empty
-		// then something went wrong.
-		if (!item.ShouldFail && err != nil) || (!item.ShouldFail && user.IsEmpty()) {
-			t.Errorf("Was not supposed to fail but did. Error: %s. Reason supposed to fail %s", err, item.Reason)
-		}
+			// If the test is supposed to pass and there is an error, or the user returned is empty
+			// then something went wrong.
+			if (!item.ShouldFail && err != nil) || (!item.ShouldFail && user.IsEmpty()) {
+				t.Errorf("Was not supposed to fail but did. Error: %s. Reason supposed to fail %s", err, item.Reason)
+			}
+
+		})
 
 	}
 

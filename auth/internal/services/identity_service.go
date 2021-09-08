@@ -12,7 +12,7 @@ import (
 type IdentityServiceInterface interface {
 	HandleLogin(req *identity.LoginRequest) (domain.User, error)
 	HandleRegister(potentialUser *domain.User) (domain.User, error)
-	GetUserById(id string) (domain.User, error)
+	GetUserById(id string) domain.User
 }
 
 type IdentityService struct {
