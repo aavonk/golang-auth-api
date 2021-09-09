@@ -17,7 +17,7 @@ type Server struct {
 func Get() *Server {
 	return &Server{
 		srv: &http.Server{
-			WriteTimeout: time.Second * 15,
+			WriteTimeout: time.Second * 30,
 			ReadTimeout:  time.Second * 15,
 			IdleTimeout:  time.Second * 60,
 		},
