@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"strings"
 )
 
 type envelope map[string]interface{}
@@ -47,16 +48,25 @@ func SendJSON(w http.ResponseWriter, status int, data interface{}, headers http.
 }
 
 // ReadJSON allows us to parse incoming JSON and control the potential errors that
-// result in parsing something invalid. Some of the errors that come from decoding
+// result in parsing something invalid. It also alows us to limit the size of JSON
+// we will accept (1MB) and help prevent a Denial-Of-Service attack.
+//
+// Some of the errors that come from decoding
 // invalid JSON can give away too many details/information about our underlying API.
-/* For Example - Consider the error message given the wront type (int rather than string) for a 'id' property.
-$ curl -d '{"id": 123}' localhost:4000/v1/currentuser
-{
-    "error": "json: cannot unmarshal number into Go struct field .title of type string"
-}
-*/
+
 func ReadJSON(w http.ResponseWriter, r *http.Request, dst interface{}) error {
-	err := json.NewDecoder(r.Body).Decode(dst)
+	// use http.MaxBytesReader() to limit the size of the request body to 1MB
+	maxBytes := 1_048_576 // 1MB
+	r.Body = http.MaxBytesReader(w, r.Body, int64(maxBytes))
+
+	// Initialize the json.Decoder, and call the DisallowUnknownFields method on it
+	// before decoding. This means that if the JSON from the client now includes any
+	// field which cannot be mapped to the target destination, the decoder will return
+	// an error instead of just ignoring the field.
+	dec := json.NewDecoder(r.Body)
+	dec.DisallowUnknownFields()
+
+	err := dec.Decode(dst)
 	if err != nil {
 		var syntaxError *json.SyntaxError
 		var invalidUnmarshalError *json.InvalidUnmarshalError
@@ -89,14 +99,41 @@ func ReadJSON(w http.ResponseWriter, r *http.Request, dst interface{}) error {
 		// check for this with errors.Is() and return a plain-english error message instead
 		case errors.Is(err, io.EOF):
 			return errors.New("body must not be empty")
+		// If the JSON contains a field which cannot be mapped to the target destination
+		// then Decode() will now return an error message in the format "json: unknown
+		// field "<name>"". We check for this, extract the field name from the error,
+		// and interpolate it into our custom error message. Note that there's an open
+		// issue at https://github.com/golang/go/issues/29035 regarding turning this
+		// into a distinct error type in the future.
+		case strings.HasPrefix(err.Error(), "json: unknown field "):
+			fieldName := strings.TrimPrefix(err.Error(), "json: unknown field ")
+			return fmt.Errorf("body contains unknown key %s", fieldName)
+
+		// If the request body exceeds 1MB in size the decode will now fail with the
+		// error "http: request body too large". There is an open issue about turning
+		// this into a distinct error type at https://github.com/golang/go/issues/30715.
+		case err.Error() == "http: request body too large":
+			return fmt.Errorf("body must not be larger than %d bytes", maxBytes)
 
 		// A json.InvalidUnmarshalError will be returned if we pass a non-nil
 		// pointer to Decode(). We catch this and panic, rather than returning an error to our handler.
+		// Normally we should handle our error, but in this case it means that the error has happened
+		// due to the developer and not the outside world, usually because we have passed an unsupported value
+		// to Decode(). This is an unexpected error we shouldn't see in production.
 		case errors.As(err, &invalidUnmarshalError):
 			panic(err)
 		default:
 			return err
 		}
+
+	}
+	// Call Decode() again, using a pointer to an empty anonymous struct as the
+	// destination. If the request body only contained a single JSON value this will
+	// return an io.EOF error. So if we get anything else, we know that there is
+	// additional data in the request body and we return our own custom error message.
+	err = dec.Decode(&struct{}{})
+	if err != io.EOF {
+		return errors.New("body must only contain a single JSON value")
 	}
 	return nil
 }
