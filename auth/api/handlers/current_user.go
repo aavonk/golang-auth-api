@@ -25,7 +25,7 @@ func getCurrentUser(service services.IdentityServiceInterface) http.HandlerFunc 
 		user := service.GetUserById(claims.UserId.String())
 
 		if user.IsEmpty() {
-			helpers.NotFoundErrResponse(w, r, errors.New("user not found in db"))
+			helpers.NotFoundErrResponse(w, r)
 			return
 		}
 

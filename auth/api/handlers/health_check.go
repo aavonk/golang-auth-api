@@ -17,10 +17,12 @@ func healthCheck(cfg *config.Confg) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 
-		response := map[string]string{
-			"status":      "available",
-			"environment": cfg.GetEnvironment(),
-			"version":     cfg.GetVersion(),
+		response := map[string]interface{}{
+			"status": "available",
+			"system_info": map[string]string{
+				"environment": cfg.GetEnvironment(),
+				"version":     cfg.GetVersion(),
+			},
 		}
 
 		err := helpers.SendJSON(w, http.StatusOK, response, nil)

@@ -1,6 +1,7 @@
 package helpers
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/todo-app/pkg/logger"
@@ -34,8 +35,8 @@ func ServerErrReponse(w http.ResponseWriter, r *http.Request, err error) {
 
 // NotFoundErrResponse writes a Status Not Found 404 Status code to the response writer
 // and writes back an error message of "the requested resource could not be found"
-func NotFoundErrResponse(w http.ResponseWriter, r *http.Request, err error) {
-	logger.Error.Printf("Not found error: %v", err)
+func NotFoundErrResponse(w http.ResponseWriter, r *http.Request) {
+	logger.Error.Println("Not found error")
 	errResponse(w, r, http.StatusNotFound, notFoundMssg)
 }
 
@@ -54,4 +55,11 @@ func UnauthorizedErrResponse(w http.ResponseWriter, r *http.Request, err error) 
 func InvalidCredentialsResponse(w http.ResponseWriter, r *http.Request, err error) {
 	logger.Error.Println(err)
 	errResponse(w, r, http.StatusUnauthorized, "invalid credentials")
+}
+
+// MethodNotAllowedResponse will be used to send a 405 Method Not Allowed
+// status code and JSON response to the client.
+func MethodNotAllowedResponse(w http.ResponseWriter, r *http.Request) {
+	message := fmt.Sprintf("the %s method is not supported for this resource", r.Method)
+	errResponse(w, r, http.StatusMethodNotAllowed, message)
 }
