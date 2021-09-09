@@ -48,11 +48,18 @@ func UnprocessableErrResponse(w http.ResponseWriter, r *http.Request, err error)
 	errResponse(w, r, http.StatusUnprocessableEntity, unproccessagbleMsg)
 }
 
-// BadRequestErrResponse will write a Status Code of 400 - StatusBadRequest with the message
-
+// BadRequestErrResponse will write a Status Code of 400 - StatusBadRequest with the message "Bad request".
+// The error passed in is private and not written to
 func BadRequestErrResponse(w http.ResponseWriter, r *http.Request, err error) {
 	logger.Error.Println(err)
 	errResponse(w, r, http.StatusBadRequest, badRequestMsg)
+}
+
+// BadRequestErrWithMsg will write a status code of 400 - StatusBadRequest, and WILL ALSO
+// include the error in the JSON response by accessing err.Error().
+func BadRequestErrResponseWithMsg(w http.ResponseWriter, r *http.Request, err error) {
+	logger.Error.Println(err)
+	errResponse(w, r, http.StatusBadRequest, err.Error())
 }
 
 func UnauthorizedErrResponse(w http.ResponseWriter, r *http.Request, err error) {

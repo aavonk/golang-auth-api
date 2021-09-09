@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"encoding/json"
 	"net/http"
 
 	"github.com/todo-app/api/helpers"
@@ -17,18 +16,17 @@ func register(service services.IdentityServiceInterface) http.HandlerFunc {
 
 		var user domain.User
 
-		err := json.NewDecoder(r.Body).Decode(&user)
+		err := helpers.ReadJSON(w, r, &user)
 
 		if err != nil {
-			helpers.UnprocessableErrResponse(w, r, err)
-
+			helpers.BadRequestErrResponseWithMsg(w, r, err)
 			return
 		}
 
 		createdUser, err := service.HandleRegister(&user)
 
 		if err != nil {
-			helpers.ServerErrReponse(w, r, err)
+			helpers.BadRequestErrResponse(w, r, err)
 			return
 		}
 
