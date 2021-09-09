@@ -12,6 +12,7 @@ var (
 	notFoundMssg       = "the requested resource could not be found"
 	unproccessagbleMsg = "the given data was not processable"
 	unauthorizedMsg    = "unauthorized"
+	badRequestMsg      = "bad request"
 )
 
 func errResponse(w http.ResponseWriter, r *http.Request, status int, message interface{}) {
@@ -45,6 +46,13 @@ func NotFoundErrResponse(w http.ResponseWriter, r *http.Request) {
 func UnprocessableErrResponse(w http.ResponseWriter, r *http.Request, err error) {
 	logger.Error.Println(err)
 	errResponse(w, r, http.StatusUnprocessableEntity, unproccessagbleMsg)
+}
+
+// BadRequestErrResponse will write a Status Code of 400 - StatusBadRequest with the message
+
+func BadRequestErrResponse(w http.ResponseWriter, r *http.Request, err error) {
+	logger.Error.Println(err)
+	errResponse(w, r, http.StatusBadRequest, badRequestMsg)
 }
 
 func UnauthorizedErrResponse(w http.ResponseWriter, r *http.Request, err error) {
