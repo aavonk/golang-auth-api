@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"encoding/json"
-	"io/ioutil"
 	"net/http"
 
 	"github.com/todo-app/api/helpers"
@@ -16,16 +15,9 @@ import (
 func register(service services.IdentityServiceInterface) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 
-		body, err := ioutil.ReadAll(r.Body)
-
-		if err != nil {
-			helpers.UnprocessableErrResponse(w, r, err)
-			return
-		}
-
 		var user domain.User
 
-		err = json.Unmarshal(body, &user)
+		err := json.NewDecoder(r.Body).Decode(&user)
 
 		if err != nil {
 			helpers.UnprocessableErrResponse(w, r, err)
