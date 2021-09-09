@@ -46,8 +46,6 @@ func login(service services.IdentityServiceInterface) http.HandlerFunc {
 		}
 
 		userResponse := user.ToHTTPResponse()
-		w.WriteHeader(http.StatusOK)
-		json.NewEncoder(w).Encode(&userResponse)
-
+		helpers.SendJSON(w, http.StatusOK, userResponse, nil)
 	}
 }
