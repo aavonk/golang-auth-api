@@ -88,12 +88,12 @@ func TestHandleLogin(t *testing.T) {
 
 	password := "supersecret"
 	createdUser, err := createTestUser(db, &repositories.UserDBModel{
-		ID:             uuid.New(),
-		FirstName:      "Hello",
-		LastName:       "Goodbye",
-		Email:          "email@email.com",
-		Password:       password,
-		EmailConfirmed: false,
+		ID:        uuid.New(),
+		FirstName: "Hello",
+		LastName:  "Goodbye",
+		Email:     "email@email.com",
+		Password:  password,
+		Activated: false,
 	}, t)
 
 	if err != nil {
@@ -259,12 +259,12 @@ func TestUserById(t *testing.T) {
 	testutil.SetupUserTable(db)
 	service := NewIdentityService(db)
 	want, _ := createTestUser(db, &repositories.UserDBModel{
-		ID:             uuid.New(),
-		FirstName:      "Hello",
-		LastName:       "Goodbye",
-		Email:          "email@email.com",
-		Password:       "secretpass",
-		EmailConfirmed: false,
+		ID:        uuid.New(),
+		FirstName: "Hello",
+		LastName:  "Goodbye",
+		Email:     "email@email.com",
+		Password:  "secretpass",
+		Activated: false,
 	}, t)
 
 	got := service.GetUserById(want.ID.String())

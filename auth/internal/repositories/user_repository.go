@@ -20,12 +20,12 @@ type UserRepo struct {
 
 // Responsible for mapping struct fields to the database table columns
 type UserDBModel struct {
-	ID             uuid.UUID `db:"id"`
-	FirstName      string    `db:"first_name"`
-	LastName       string    `db:"last_name"`
-	Email          string    `db:"email"`
-	Password       string    `db:"password"`
-	EmailConfirmed bool      `db:"email_confirmed"`
+	ID        uuid.UUID `db:"id"`
+	FirstName string    `db:"first_name"`
+	LastName  string    `db:"last_name"`
+	Email     string    `db:"email"`
+	Password  string    `db:"password"`
+	Activated bool      `db:"activated"`
 }
 
 // Returns a domain user object, insuring that we interact with the domain object,
@@ -103,16 +103,16 @@ func (r *UserRepo) Create(user *domain.User) (domain.User, error) {
 	user.HashPassword()
 
 	model := &UserDBModel{
-		ID:             user.ID,
-		FirstName:      user.FirstName,
-		LastName:       user.LastName,
-		Email:          user.Email,
-		Password:       user.Password,
-		EmailConfirmed: false,
+		ID:        user.ID,
+		FirstName: user.FirstName,
+		LastName:  user.LastName,
+		Email:     user.Email,
+		Password:  user.Password,
+		Activated: false,
 	}
 
-	_, err := r.db.NamedExec(`INSERT INTO users (id, first_name, last_name, email, password, email_confirmed)
-	 VALUES (:id, :first_name, :last_name, :email, :password, :email_confirmed)`, model)
+	_, err := r.db.NamedExec(`INSERT INTO users (id, first_name, last_name, email, password, activated)
+	 VALUES (:id, :first_name, :last_name, :email, :password, :activated)`, model)
 
 	if err != nil {
 		return domain.User{}, err
