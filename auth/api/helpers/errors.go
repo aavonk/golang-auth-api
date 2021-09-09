@@ -8,7 +8,7 @@ import (
 
 var (
 	internalSrvErrMsg  = "the server encountered a problem and could not process your request"
-	notFoundMssg       = "the requested reouce could not be found"
+	notFoundMssg       = "the requested resource could not be found"
 	unproccessagbleMsg = "the given data was not processable"
 	unauthorizedMsg    = "unauthorized"
 )
@@ -24,16 +24,23 @@ func errResponse(w http.ResponseWriter, r *http.Request, status int, message int
 		w.WriteHeader(status)
 	}
 }
+
+// ServerErrResponse writes a Internal Service Error 500 Status Code to the response writer
+// and writes back an error message of "The server encountered a problem and could not process your request"
 func ServerErrReponse(w http.ResponseWriter, r *http.Request, err error) {
 	logger.Error.Println(err)
 	errResponse(w, r, http.StatusInternalServerError, internalSrvErrMsg)
 }
 
+// NotFoundErrResponse writes a Status Not Found 404 Status code to the response writer
+// and writes back an error message of "the requested resource could not be found"
 func NotFoundErrResponse(w http.ResponseWriter, r *http.Request, err error) {
 	logger.Error.Printf("Not found error: %v", err)
 	errResponse(w, r, http.StatusNotFound, notFoundMssg)
 }
 
+// UnprocessableErrResponse write a Status Code of 422 - StatusUnprocessableEntity with the message
+// "the given data was not processable"
 func UnprocessableErrResponse(w http.ResponseWriter, r *http.Request, err error) {
 	logger.Error.Println(err)
 	errResponse(w, r, http.StatusUnprocessableEntity, unproccessagbleMsg)
