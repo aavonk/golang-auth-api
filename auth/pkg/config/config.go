@@ -67,3 +67,11 @@ func (c *Confg) GetTestDBConnStr() string {
 func (c *Confg) GetAPIPort() string {
 	return ":" + c.apiPort
 }
+
+func (c *Confg) GetEnvironment() string {
+	return c.env
+}
+
+func (c *Confg) GetVersion() string {
+	return c.version
+}

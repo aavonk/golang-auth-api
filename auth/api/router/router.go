@@ -1,9 +1,7 @@
 package router
 
 import (
-	"encoding/json"
 	"net/http"
-	"time"
 
 	"github.com/gorilla/mux"
 	"github.com/todo-app/api/handlers"
@@ -13,16 +11,12 @@ import (
 
 func Get(app *application.App) *mux.Router {
 	r := mux.NewRouter()
-	r.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusOK)
-		json.NewEncoder(w).Encode(map[string]string{"status": "OK", "time": time.Now().UTC().String()})
-	})
+	r.HandleFunc("/health", handlers.HealthCheck(app))
 
 	// authMiddleware := alice.New(middleware.AuthenticationMiddleware)
-	r.HandleFunc("/register", handlers.Register(app)).Methods("POST")
-	r.HandleFunc("/signin", handlers.Login(app)).Methods("POST")
-	r.HandleFunc("/currentuser", middleware.AuthenticationMiddleware(handlers.GetCurrentUser(app))).Methods("GET")
+	r.HandleFunc("/register", handlers.Register(app)).Methods(http.MethodPost)
+	r.HandleFunc("/signin", handlers.Login(app)).Methods(http.MethodPost)
+	r.HandleFunc("/currentuser", middleware.AuthenticationMiddleware(handlers.GetCurrentUser(app))).Methods(http.MethodGet)
 	http.Handle("/", r)
 	// Standard Middlewares applied on every request
 	r.Use(middleware.SecureHeaders)
