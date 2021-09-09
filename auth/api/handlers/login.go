@@ -5,7 +5,7 @@ import (
 	"io/ioutil"
 	"net/http"
 
-	"github.com/todo-app/internal"
+	"github.com/todo-app/api/helpers"
 	"github.com/todo-app/internal/application"
 	"github.com/todo-app/internal/identity"
 	"github.com/todo-app/internal/services"
@@ -17,11 +17,10 @@ func Login(app *application.App) http.HandlerFunc {
 
 func login(service services.IdentityServiceInterface) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Content-Type", "application/json")
 		body, err := ioutil.ReadAll(r.Body)
 
 		if err != nil {
-			internal.ErrUnprocessableEntity(err, "cannot parse body").Send(w)
+			helpers.UnprocessableErrResponse(w, r, err)
 			return
 		}
 		var loginReq identity.LoginRequest
@@ -29,26 +28,20 @@ func login(service services.IdentityServiceInterface) http.HandlerFunc {
 		err = json.Unmarshal(body, &loginReq)
 
 		if err != nil {
-			internal.ErrUnprocessableEntity(err, "cannot parse body").Send(w)
+			helpers.UnprocessableErrResponse(w, r, err)
 			return
 		}
 
 		user, err := service.HandleLogin(&loginReq)
 		if err != nil {
-			// Error will read "invalid credentials"
-			internal.ErrUnprocessableEntity(err, err.Error()).Send(w)
+			helpers.InvalidCredentialsResponse(w, r, err)
+
 			return
 		}
 
-		// err = identity.SetAndSaveSession(r, w, user)
 		err = identity.SetCookie(w, user)
 		if err != nil {
-			internal.ErrInternalServer(err, "internal error message").Send(w)
-			return
-		}
-
-		if err != nil {
-			internal.ErrInternalServer(err, "internal server error").Send(w)
+			helpers.ServerErrReponse(w, r, err)
 			return
 		}
 

@@ -5,7 +5,7 @@ import (
 	"io/ioutil"
 	"net/http"
 
-	"github.com/todo-app/internal"
+	"github.com/todo-app/api/helpers"
 
 	"github.com/todo-app/internal/application"
 	"github.com/todo-app/internal/domain"
@@ -15,12 +15,11 @@ import (
 
 func register(service services.IdentityServiceInterface) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Content-Type", "application/json")
 
 		body, err := ioutil.ReadAll(r.Body)
 
 		if err != nil {
-			internal.ErrUnprocessableEntity(err, err.Error()).Send(w)
+			helpers.UnprocessableErrResponse(w, r, err)
 			return
 		}
 
@@ -29,14 +28,15 @@ func register(service services.IdentityServiceInterface) http.HandlerFunc {
 		err = json.Unmarshal(body, &user)
 
 		if err != nil {
-			internal.ErrUnprocessableEntity(err, err.Error()).Send(w)
+			helpers.UnprocessableErrResponse(w, r, err)
+
 			return
 		}
 
 		createdUser, err := service.HandleRegister(&user)
 
 		if err != nil {
-			internal.ErrBadRequest(err, "Bad Request").Send(w)
+			helpers.ServerErrReponse(w, r, err)
 			return
 		}
 
@@ -44,12 +44,12 @@ func register(service services.IdentityServiceInterface) http.HandlerFunc {
 
 		err = identity.SetCookie(w, user)
 		if err != nil {
-			internal.ErrInternalServer(err, "internal error message").Send(w)
+			helpers.ServerErrReponse(w, r, err)
+
 			return
 		}
 
-		w.WriteHeader(http.StatusCreated)
-		json.NewEncoder(w).Encode(&userResponse)
+		helpers.SendJSON(w, http.StatusCreated, userResponse, nil)
 
 	}
 

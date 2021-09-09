@@ -1,9 +1,9 @@
 package handlers
 
 import (
-	"encoding/json"
 	"net/http"
 
+	"github.com/todo-app/api/helpers"
 	"github.com/todo-app/internal/application"
 	"github.com/todo-app/pkg/config"
 )
@@ -23,7 +23,12 @@ func healthCheck(cfg *config.Confg) http.HandlerFunc {
 			"version":     cfg.GetVersion(),
 		}
 
-		json.NewEncoder(w).Encode(response)
+		err := helpers.SendJSON(w, http.StatusOK, response, nil)
+		if err != nil {
+			helpers.ServerErrReponse(w, r, err)
+			return
+		}
+
 	}
 
 }

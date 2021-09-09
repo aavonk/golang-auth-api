@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/todo-app/internal"
+	"github.com/todo-app/api/helpers"
 	"github.com/todo-app/internal/identity"
 	"github.com/todo-app/pkg/logger"
 )
@@ -38,7 +38,8 @@ func PanicRecovery(next http.Handler) http.Handler {
 				// Set a "Connection: close" header on the response.
 				w.Header().Set("Connection", "close")
 				// Return a 500 Internal server Error response
-				internal.ErrInternalServer(fmt.Errorf("%s", err), "Internal server error").Send(w)
+				helpers.ServerErrReponse(w, r, fmt.Errorf("err: %v", err))
+
 			}
 		}()
 
@@ -56,13 +57,13 @@ func AuthenticationMiddleware(next http.HandlerFunc) http.HandlerFunc {
 		// Get the token from the cookie
 		token, err := identity.GetTokenFromCookie(r)
 		if err != nil || token == "" {
-			internal.ErrUnauthorized(err, "unauthorized").Send(w)
+			helpers.UnauthorizedErrResponse(w, r, err)
 			return
 		}
 		// Extract the info from the token and place it in the claims var
 		claims, err := identity.ExtractClaimsFromToken(token)
 		if err != nil {
-			internal.ErrUnauthorized(err, "unauthorized").Send(w)
+			helpers.UnauthorizedErrResponse(w, r, err)
 			return
 		}
 
