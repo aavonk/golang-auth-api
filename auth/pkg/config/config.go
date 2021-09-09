@@ -16,7 +16,11 @@ type Confg struct {
 	testDBName string
 	apiPort    string
 	migrate    string
+	version    string
+	env        string
 }
+
+const version string = "1.0.0"
 
 func Get() *Confg {
 	c := &Confg{}
@@ -30,6 +34,8 @@ func Get() *Confg {
 	flag.StringVar(&c.testDBName, "testdbname", os.Getenv("TEST_DB_NAME"), "Test db name")
 	flag.StringVar(&c.apiPort, "apiport", os.Getenv("API_PORT"), "Api port to listen on")
 	flag.StringVar(&c.migrate, "migrate", "up", "Direction to migrate DB [up or down]")
+	flag.StringVar(&c.version, "version", version, "Current version of the API")
+	flag.StringVar(&c.env, "env", "development", "Working environment of API - [production, development]")
 	flag.Parse()
 
 	return c
