@@ -1,0 +1,31 @@
+{{define "subject"}}Welcome to App With No Name!{{end}}
+
+{{define "plainBody"}}
+Hi {{.FirstName}},
+
+Thanks for signing up for a App With No Name account. We're excited to have you on board!
+
+For furutre reference, your user ID is {{.ID}}.
+
+Thanks,
+
+The App With No Name Team
+{{end}}
+
+{{define "htmlBody"}}
+<!doctype html>
+<html>
+    <head>
+        <meta name="viewport" content="width=device-width" />
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+    </head>
+
+    <body>
+        <p>Hi {{.FirstName}}, </p>
+        <p> Thanks for signing up for a App With No Name account. We're excited to have you on board!</p>
+        <p>For future reference, your user ID is {{.ID}} </p>
+        <p>Thanks,</p>
+        <p> The App With No Name Team</p>
+    </body>
+</html>
+{{end}}
