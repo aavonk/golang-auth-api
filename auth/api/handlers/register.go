@@ -26,7 +26,7 @@ func register(service services.IdentityServiceInterface) http.HandlerFunc {
 		createdUser, err := service.HandleRegister(&user)
 
 		if err != nil {
-			helpers.BadRequestErrResponse(w, r, err)
+			helpers.BadRequestErrResponseWithMsg(w, r, err)
 			return
 		}
 
