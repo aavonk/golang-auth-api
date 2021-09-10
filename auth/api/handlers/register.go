@@ -32,7 +32,7 @@ func register(service services.IdentityServiceInterface) http.HandlerFunc {
 
 		userResponse := createdUser.ToHTTPResponse()
 
-		err = identity.SetCookie(w, user)
+		err = identity.SetCookie(w, &user)
 		if err != nil {
 			helpers.ServerErrReponse(w, r, err)
 

@@ -22,14 +22,14 @@ func getCurrentUser(service services.IdentityServiceInterface) http.HandlerFunc 
 			return
 		}
 
-		user := service.GetUserById(claims.UserId.String())
+		user, err := service.GetUserById(claims.UserId.String())
 
-		if user.IsEmpty() {
+		if err != nil {
 			helpers.NotFoundErrResponse(w, r)
 			return
 		}
 
-		err := helpers.SendJSON(w, http.StatusOK, user.ToHTTPResponse(), nil)
+		err = helpers.SendJSON(w, http.StatusOK, user.ToHTTPResponse(), nil)
 
 		if err != nil {
 			helpers.ServerErrReponse(w, r, err)

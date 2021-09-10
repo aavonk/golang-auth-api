@@ -1,17 +1,21 @@
 package repositories
 
 import (
+	"context"
+	"database/sql"
+	"errors"
+	"time"
+
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
 
 	"github.com/todo-app/internal/domain"
-	"github.com/todo-app/pkg/logger"
 )
 
 type UserRepositoryInterface interface {
-	GetByEmail(email string) domain.User
-	Create(user *domain.User) (domain.User, error)
-	GetById(id string) domain.User
+	GetByEmail(email string) (*domain.User, error)
+	Create(user *domain.User) (*domain.User, error)
+	GetById(id string) (*domain.User, error)
 }
 
 type UserRepo struct {
@@ -26,12 +30,13 @@ type UserDBModel struct {
 	Email     string    `db:"email"`
 	Password  string    `db:"password"`
 	Activated bool      `db:"activated"`
+	CreatedAt time.Time `db:"created_at"`
 }
 
 // Returns a domain user object, insuring that we interact with the domain object,
 // and keep certain things that may be database specific out of the application code.
-func (m *UserDBModel) ToDomain() domain.User {
-	return domain.User{
+func (m *UserDBModel) ToDomain() *domain.User {
+	return &domain.User{
 		ID:        m.ID,
 		FirstName: m.FirstName,
 		LastName:  m.LastName,
@@ -49,46 +54,70 @@ func NewUserRepository(db *sqlx.DB) *UserRepo {
 // Get by email queries the DB for a certain user by email,
 // returning the user if found, and returning and empty user
 // domain model if not found.
-//
-// @example:
-//  usr := repository.GetByEmail("email@email.com")
-// 	if usr.IsEmpty() {
-// 		... "handle empty/error case"
-//	}
-func (r *UserRepo) GetByEmail(email string) domain.User {
+func (r *UserRepo) GetByEmail(email string) (*domain.User, error) {
+	query := `SELECT * FROM users WHERE email=$1`
 	user := UserDBModel{}
 
-	// Get returns an error if the result set is empty
-	err := r.db.Get(&user, "SELECT * FROM users WHERE email=$1", email)
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	err := r.db.QueryRowContext(ctx, query, email).Scan(
+		&user.ID,
+		&user.CreatedAt,
+		&user.FirstName,
+		&user.LastName,
+		&user.Email,
+		&user.Password,
+		&user.Activated,
+	)
 
 	if err != nil {
-		// No records were found, return empty user object
-		return domain.User{}
+		switch {
+		case errors.Is(err, sql.ErrNoRows):
+			return nil, ErrRecordNotFound
+		default:
+			return nil, err
+		}
+
 	}
 
-	return user.ToDomain()
+	return user.ToDomain(), nil
+
 }
 
 // GetById searches for and returns a user given an ID.
 // If not found, or an error occurs, and empty user is returned.
 // This can be checked by using the isEmpty method on domain.User structs
 //
-// @example:
-//  usr := repository.GetById("someId")
-// 	if usr.IsEmpty() {
-// 		... "handle empty/error case"
-//	}
-func (r *UserRepo) GetById(id string) domain.User {
+
+func (r *UserRepo) GetById(id string) (*domain.User, error) {
+	query := `SELECT * FROM USERS WHERE id = $1`
 	user := UserDBModel{}
 
-	err := r.db.Get(&user, "SELECT * FROM users WHERE id=$1", id)
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	err := r.db.QueryRowContext(ctx, query, id).Scan(
+		&user.ID,
+		&user.CreatedAt,
+		&user.FirstName,
+		&user.LastName,
+		&user.Email,
+		&user.Password,
+		&user.Activated,
+	)
 
 	if err != nil {
-		logger.Error.Printf("Failed GetUserById Query. Reason: %v", err)
-		return domain.User{}
+		switch {
+		case errors.Is(err, sql.ErrNoRows):
+			return nil, ErrRecordNotFound
+		default:
+			return nil, err
+		}
+
 	}
 
-	return user.ToDomain()
+	return user.ToDomain(), nil
 }
 
 // Create inserts a user to the database. It takes a domain.User object
@@ -99,25 +128,41 @@ func (r *UserRepo) GetById(id string) domain.User {
 // Before Saving it to the database, it hashes the password. If the hashing is done
 // elsewhere, the password will then be double hashed and unable to check if a user has
 // given a valid password
-func (r *UserRepo) Create(user *domain.User) (domain.User, error) {
+func (r *UserRepo) Create(user *domain.User) (*domain.User, error) {
 	user.HashPassword()
 
-	model := &UserDBModel{
-		ID:        user.ID,
-		FirstName: user.FirstName,
-		LastName:  user.LastName,
-		Email:     user.Email,
-		Password:  user.Password,
-		Activated: false,
-	}
+	model := UserDBModel{}
+	query := `INSERT INTO users (id, first_name, last_name, email, password, activated)
+	VALUES ($1, $2, $3, $4, $5, $6)
+	RETURNING id, first_name, last_name, email, password, activated, created_at`
 
-	_, err := r.db.NamedExec(`INSERT INTO users (id, first_name, last_name, email, password, activated)
-	 VALUES (:id, :first_name, :last_name, :email, :password, :activated)`, model)
+	args := []interface{}{user.ID, user.FirstName, user.LastName, user.Email, user.Password, user.Activated}
 
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	err := r.db.QueryRowContext(ctx, query, args...).Scan(
+		&model.ID,
+		&model.FirstName,
+		&model.LastName,
+		&model.Email,
+		&model.Password,
+		&model.Activated,
+		&model.CreatedAt,
+	)
+
+	// If the table already contains a record with this email address, then when we try
+	// to perform the insert there will be a violation of the UNIQUE "users_email_key"
+	// constraint that we set up in the previous chapter. We check for this error
+	// specifically, and return custom ErrDuplicateEmail error instead.
 	if err != nil {
-		return domain.User{}, err
+		switch {
+		case err.Error() == `pq: duplicate key value violates unique constraint "users_email_key"`:
+			return nil, ErrDuplicateEmail
+		default:
+			return nil, err
+		}
 	}
 
-	// Find out how to return the user
 	return model.ToDomain(), nil
 }

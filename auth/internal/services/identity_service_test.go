@@ -139,7 +139,7 @@ func TestHandleLogin(t *testing.T) {
 				t.Errorf("Failedl login with error %v", err)
 			}
 
-			if u.IsEmpty() && tt.shouldPass {
+			if u == nil && tt.shouldPass {
 				t.Errorf("Expected a user returned, but got isEmpty")
 			}
 		})
@@ -237,13 +237,13 @@ func TestHandleRegistration(t *testing.T) {
 
 			// If the test case is supposed to fail, and no error is present
 			// something went wrong
-			if (item.ShouldFail && err == nil) || (item.ShouldFail && !user.IsEmpty()) {
+			if (item.ShouldFail && err == nil) || (item.ShouldFail && user != nil) {
 				t.Errorf("Item was supposed to fail but did not. Reason that it was supposed to fail: %s", item.Reason)
 			}
 
 			// If the test is supposed to pass and there is an error, or the user returned is empty
 			// then something went wrong.
-			if (!item.ShouldFail && err != nil) || (!item.ShouldFail && user.IsEmpty()) {
+			if (!item.ShouldFail && err != nil) || (!item.ShouldFail && user == nil) {
 				t.Errorf("Was not supposed to fail but did. Error: %s. Reason supposed to fail %s", err, item.Reason)
 			}
 
@@ -255,26 +255,78 @@ func TestHandleRegistration(t *testing.T) {
 
 }
 
-func TestUserById(t *testing.T) {
+func TestGetUserById(t *testing.T) {
 	testutil.SetupUserTable(db)
 	service := NewIdentityService(db)
-	want, _ := createTestUser(db, &repositories.UserDBModel{
-		ID:        uuid.New(),
-		FirstName: "Hello",
-		LastName:  "Goodbye",
-		Email:     "email@email.com",
-		Password:  "secretpass",
-		Activated: false,
-	}, t)
 
-	got := service.GetUserById(want.ID.String())
+	idOne := uuid.New()
+	idTwo := uuid.New()
 
-	if got.IsEmpty() {
-		t.Errorf("Failed to get user")
+	tests := []struct {
+		name     string
+		userId   string
+		wantUser domain.User
+		wantErr  error
+	}{
+		{
+			name:   "Should pass 1",
+			userId: idOne.String(),
+			wantUser: domain.User{
+				ID:        idOne,
+				FirstName: "Hello",
+				LastName:  "Goodbye",
+				Email:     "test1@gmail.com",
+				Password:  "hellohello",
+				Activated: false,
+			},
+			wantErr: nil,
+		},
+		{
+			name:   "should pass 2",
+			userId: idTwo.String(),
+			wantUser: domain.User{
+				ID:        idTwo,
+				FirstName: "Goodbye",
+				LastName:  "Hello",
+				Email:     "email3@gmail.com",
+				Password:  "asdfalsdkf",
+				Activated: false,
+			},
+			wantErr: nil,
+		},
+		{
+			name:   "Should throw error",
+			userId: "fakeIdthat0123kjf",
+			wantUser: domain.User{
+				ID:        uuid.New(),
+				FirstName: "hellloooo",
+				LastName:  "goooodbye",
+				Email:     "asdf@gmail.com",
+				Password:  "asdfasdf",
+				Activated: false,
+			},
+			wantErr: repositories.ErrRecordNotFound,
+		},
 	}
 
-	if got != want {
-		t.Errorf("got %+v, wanted %+v", got, want)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			createTestUser(db, &repositories.UserDBModel{
+				ID:        tt.wantUser.ID,
+				FirstName: tt.wantUser.FirstName,
+				LastName:  tt.wantUser.LastName,
+				Email:     tt.wantUser.Email,
+				Password:  tt.wantUser.Password,
+				Activated: tt.wantUser.Activated,
+			}, t)
+
+			_, err := service.GetUserById(tt.userId)
+
+			if err != tt.wantErr {
+				t.Errorf("want: %v; got %v", tt.wantErr, err)
+			}
+
+		})
 	}
 
 	testutil.TeardownUserTable(db, t)
@@ -282,7 +334,7 @@ func TestUserById(t *testing.T) {
 
 // ---------------------  Helpers ---------------------------- //
 
-func createTestUser(db *sqlx.DB, model *repositories.UserDBModel, t *testing.T) (domain.User, error) {
+func createTestUser(db *sqlx.DB, model *repositories.UserDBModel, t *testing.T) (*domain.User, error) {
 	newPass, err := identity.HashPassword([]byte(model.Password))
 
 	if err != nil {
@@ -290,11 +342,11 @@ func createTestUser(db *sqlx.DB, model *repositories.UserDBModel, t *testing.T) 
 	}
 
 	model.Password = string(newPass)
-	_, err = db.NamedExec(`INSERT INTO users (id, first_name, last_name, email, password, email_confirmed)
-	 VALUES (:id, :first_name, :last_name, :email, :password, :email_confirmed)`, model)
+	_, err = db.NamedExec(`INSERT INTO users (id, first_name, last_name, email, password, activated)
+	 VALUES (:id, :first_name, :last_name, :email, :password, :activated)`, model)
 
 	if err != nil {
-		return domain.User{}, err
+		return nil, err
 	}
 
 	return model.ToDomain(), nil

@@ -86,7 +86,7 @@ func ExtractClaimsFromToken(tokenString string) (JWTClaims, error) {
 }
 
 // TODO: Add Expiration date on cookie
-func SetCookie(w http.ResponseWriter, user domain.User) error {
+func SetCookie(w http.ResponseWriter, user *domain.User) error {
 	token, err := newToken(JWTClaims{
 		UserId: user.ID,
 		Email:  user.Email,

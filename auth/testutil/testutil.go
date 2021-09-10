@@ -11,17 +11,17 @@ import (
 
 func SetupUserTable(db *sqlx.DB) {
 	var schema = `
-	CREATE TABLE IF NOT EXISTS "users" (
-		"id" TEXT NOT NULL,
-		"first_name" VARCHAR(50) NOT NULL,
-		"last_name" VARCHAR(80) NOT NULL,
-		"email" TEXT NOT NULL UNIQUE,
-		"email_confirmed" BOOLEAN NOT NULL DEFAULT false,
-		"password" TEXT NOT NULL,
+	CREATE EXTENSION IF NOT EXISTS citext;
 
-		PRIMARY KEY ("id")
-	);
-	`
+	CREATE TABLE IF NOT EXISTS users (
+		id text NOT NULL PRIMARY KEY,
+		created_at timestamp(0) with time zone NOT NULL DEFAULT NOW(),
+		first_name text NOT NULL,
+		last_name text NOT NULL,
+		email citext UNIQUE NOT NULL,
+		password bytea NOT NULL,
+		activated bool NOT NULL
+	);`
 	// log.Println("**** Creating User Table ****")
 	db.MustExec(schema)
 
