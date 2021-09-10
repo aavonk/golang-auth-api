@@ -41,7 +41,7 @@ func main() {
 			log.Println(err.Error())
 		}
 
-		if err := app.DataStore.Close(); err != nil {
+		if err := app.CloseDBConn(); err != nil {
 			logger.Error.Println(err.Error())
 		}
 	})

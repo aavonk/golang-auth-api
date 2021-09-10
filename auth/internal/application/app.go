@@ -9,6 +9,7 @@ import (
 )
 
 type App struct {
+	dataStore       *internal.DataStore
 	Confg           *config.Confg
 	UserRepository  repositories.UserRepositoryInterface
 	IdentityService services.IdentityServiceInterface
@@ -24,8 +25,13 @@ func BootstrapApp() (*App, error) {
 
 	logger.Info.Print("successfully connected to database")
 	return &App{
+		dataStore:       db,
 		Confg:           cfg,
 		UserRepository:  repositories.NewUserRepository(db.Client),
 		IdentityService: services.NewIdentityService(db.Client),
 	}, nil
+}
+
+func (a *App) CloseDBConn() error {
+	return a.dataStore.Close()
 }
