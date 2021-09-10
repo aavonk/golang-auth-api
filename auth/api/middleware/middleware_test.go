@@ -60,3 +60,31 @@ func TestSecureHeaders(t *testing.T) {
 	}
 
 }
+
+func TestPanicRecovery(t *testing.T) {
+	res := httptest.NewRecorder()
+
+	req, err := http.NewRequest(http.MethodGet, "/", nil)
+
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	homeHandler := func(w http.ResponseWriter, r *http.Request) { panic("test panic :)") }
+
+	panicHandler := PanicRecovery(http.HandlerFunc(homeHandler))
+
+	panicHandler.ServeHTTP(res, req)
+
+	rs := res.Result()
+
+	// Check to make sure that the connection header was set to close
+	closeConnHeader := rs.Header.Get("Connection")
+	if closeConnHeader != "close" {
+		t.Errorf("want %v; got %v", "close", closeConnHeader)
+	}
+
+	if rs.StatusCode != 500 {
+		t.Errorf("wanted %d; got %d", 500, rs.StatusCode)
+	}
+}
