@@ -1,20 +1,22 @@
 package handlers
 
 import (
+	"errors"
 	"fmt"
 	"net/http"
+	"time"
 
 	"github.com/todo-app/api/helpers"
 	"github.com/todo-app/pkg/logger"
 
 	"github.com/todo-app/internal/application"
 	"github.com/todo-app/internal/domain"
-	"github.com/todo-app/internal/identity"
 	"github.com/todo-app/internal/mailer"
+	"github.com/todo-app/internal/repositories"
 	"github.com/todo-app/internal/services"
 )
 
-func register(service services.IdentityServiceInterface, mailer mailer.Mailer) http.HandlerFunc {
+func register(service services.IdentityServiceInterface, tokenRepo repositories.TokenRepositoryInterface, mailer mailer.Mailer) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 
 		var user domain.User
@@ -29,18 +31,25 @@ func register(service services.IdentityServiceInterface, mailer mailer.Mailer) h
 		createdUser, err := service.HandleRegister(&user)
 
 		if err != nil {
-			helpers.BadRequestErrResponseWithMsg(w, r, err)
+			switch {
+			case errors.Is(err, repositories.ErrDuplicateEmail):
+				helpers.BadRequestErrResponseWithMsg(w, r, err)
+			default:
+				helpers.ServerErrReponse(w, r, err)
+			}
+			return
+		}
+
+		// After the user record has been created in the database, generate a new activation
+		// token for the user.
+		token, err := tokenRepo.New(createdUser.ID.String(), 3*24*time.Hour, domain.TokenScopeActivation)
+		if err != nil {
+			helpers.ServerErrReponse(w, r, err)
 			return
 		}
 
 		userResponse := createdUser.ToHTTPResponse()
 
-		err = identity.SetCookie(w, &user)
-		if err != nil {
-			helpers.ServerErrReponse(w, r, err)
-
-			return
-		}
 		// Send Welcome email in a goroutine so it gets processed in the background
 		go func() {
 			// Run a deferred function which uses recover() to catch any panic, and log an
@@ -50,7 +59,13 @@ func register(service services.IdentityServiceInterface, mailer mailer.Mailer) h
 					logger.Error.Println(fmt.Errorf("%s", err))
 				}
 			}()
-			err = mailer.Send(user.Email, "user_welcome.tmpl", user)
+
+			data := map[string]interface{}{
+				"activationToken": token.Plaintext,
+				"user":            createdUser,
+			}
+
+			err = mailer.Send(createdUser.Email, "user_welcome.tmpl", data)
 			if err != nil {
 				// We just want to log it instead of send an error response
 				// to the client
@@ -70,5 +85,5 @@ func register(service services.IdentityServiceInterface, mailer mailer.Mailer) h
 }
 
 func Register(app *application.App) http.HandlerFunc {
-	return register(app.IdentityService, app.Mailer)
+	return register(app.IdentityService, app.TokenRepository, app.Mailer)
 }

@@ -1,14 +1,14 @@
 package domain
 
 import (
+	"crypto/rand"
 	"crypto/sha256"
 	"encoding/base32"
-	"math/rand"
 	"time"
 )
 
 const (
-	ScopeActivation = "activation"
+	TokenScopeActivation = "activation"
 )
 
 type Token struct {

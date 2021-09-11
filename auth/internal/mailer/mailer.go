@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/go-mail/mail/v2"
+	"github.com/todo-app/pkg/logger"
 )
 
 // Below we declare a new variable with the type embed.FS (embedded file system) to hold
@@ -88,6 +89,7 @@ func (m Mailer) Send(recipient, templateFile string, data interface{}) error {
 		err = m.dialer.DialAndSend(msg)
 		// If everything worked, return nil
 		if nil == err {
+			logger.Info.Printf("Successfully sent email to: %s", recipient)
 			return nil
 		}
 

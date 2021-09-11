@@ -15,13 +15,15 @@ type User struct {
 	LastName  string    `json:"lastName"`
 	Email     string    `json:"email"`
 	Password  string    `json:"password"`
-	Activated bool      `json:"activeted omitempty"`
+	Activated bool      `json:"activated"`
 }
 
 type UserResponse struct {
-	ID    uuid.UUID `json:"id"`
-	Name  string    `json:"name"`
-	Email string    `json:"email"`
+	ID        uuid.UUID `json:"id"`
+	FirstName string    `json:"firstName"`
+	LastName  string    `json:"lastName"`
+	Email     string    `json:"email"`
+	Activated bool      `json:"activate"`
 }
 
 var (
@@ -73,8 +75,10 @@ func (u *User) IsEmpty() bool {
 
 func (u *User) ToHTTPResponse() *UserResponse {
 	return &UserResponse{
-		ID:    u.ID,
-		Email: u.Email,
-		Name:  u.FirstName,
+		ID:        u.ID,
+		Email:     u.Email,
+		FirstName: u.FirstName,
+		LastName:  u.LastName,
+		Activated: u.Activated,
 	}
 }
