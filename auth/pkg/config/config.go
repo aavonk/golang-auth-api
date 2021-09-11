@@ -18,6 +18,13 @@ type Confg struct {
 	migrate    string
 	version    string
 	env        string
+	Smtp       struct {
+		Host     string
+		Port     int
+		Username string
+		Password string
+		Sender   string
+	}
 }
 
 const version string = "1.0.0"
@@ -36,6 +43,11 @@ func Get() *Confg {
 	flag.StringVar(&c.migrate, "migrate", "up", "Direction to migrate DB [up or down]")
 	flag.StringVar(&c.version, "version", version, "Current version of the API")
 	flag.StringVar(&c.env, "env", "development", "Working environment of API - [production, development]")
+	flag.StringVar(&c.Smtp.Host, "smtp-host", "smtp.mailtrap.io", "SMPT Host")
+	flag.IntVar(&c.Smtp.Port, "smtp-port", 25, "SMTP port")
+	flag.StringVar(&c.Smtp.Username, "smtp-username", os.Getenv("SMTP_USERNAME"), "SMPT username")
+	flag.StringVar(&c.Smtp.Password, "smtp-password", os.Getenv("SMTP_PASSWORD"), "SMTP password")
+	flag.StringVar(&c.Smtp.Sender, "smtp-sender", "App With No Name <no-reply@nonameapp.aaronvk.com>", "SMTP sender email address")
 	flag.Parse()
 
 	return c

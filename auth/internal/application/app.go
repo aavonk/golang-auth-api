@@ -2,6 +2,7 @@ package application
 
 import (
 	"github.com/todo-app/internal"
+	"github.com/todo-app/internal/mailer"
 	"github.com/todo-app/internal/repositories"
 	"github.com/todo-app/internal/services"
 	"github.com/todo-app/pkg/config"
@@ -11,7 +12,9 @@ import (
 type App struct {
 	dataStore       *internal.DataStore
 	Confg           *config.Confg
+	Mailer          mailer.Mailer
 	UserRepository  repositories.UserRepositoryInterface
+	TokenRepository repositories.TokenRepositoryInterface
 	IdentityService services.IdentityServiceInterface
 }
 
@@ -28,7 +31,15 @@ func BootstrapApp() (*App, error) {
 		dataStore:       db,
 		Confg:           cfg,
 		UserRepository:  repositories.NewUserRepository(db.Client),
+		TokenRepository: repositories.NewTokenRepository(db.Client),
 		IdentityService: services.NewIdentityService(db.Client),
+		Mailer: mailer.New(
+			cfg.Smtp.Host,
+			cfg.Smtp.Port,
+			cfg.Smtp.Username,
+			cfg.Smtp.Password,
+			cfg.Smtp.Sender,
+		),
 	}, nil
 }
 
