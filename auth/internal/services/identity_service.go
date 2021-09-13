@@ -64,12 +64,6 @@ func (s *IdentityService) HandleRegister(potentialUser *domain.User) (*domain.Us
 	// address given. When the repository attempts to insert a user into the DB
 	// it handles the error that would come from attempting to insert a user
 	// with the same email, and returns an internal error(ErrDuplicateEmail).
-	potentialUser.Prepare()
-	err := potentialUser.Validate()
-
-	if err != nil {
-		return nil, err
-	}
 
 	newUser, err := s.userRepo.Create(potentialUser)
 

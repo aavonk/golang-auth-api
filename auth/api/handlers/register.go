@@ -14,6 +14,7 @@ import (
 	"github.com/todo-app/internal/mailer"
 	"github.com/todo-app/internal/repositories"
 	"github.com/todo-app/internal/services"
+	"github.com/todo-app/internal/validator"
 )
 
 func register(service services.IdentityServiceInterface, tokenRepo repositories.TokenRepositoryInterface, mailer mailer.Mailer) http.HandlerFunc {
@@ -25,6 +26,19 @@ func register(service services.IdentityServiceInterface, tokenRepo repositories.
 
 		if err != nil {
 			helpers.BadRequestErrResponseWithMsg(w, r, err)
+			return
+		}
+
+		user.Prepare()
+		v := validator.New()
+
+		v.Check(user.FirstName != "", "firstName", "first name is required")
+		v.Check(user.LastName != "", "lastName", "last name is required")
+		v.Check(v.Matches(user.Email, validator.EmailRX), "email", "invalid email")
+		v.Check(len([]rune(user.Password)) >= 6, "password", "password must be atleast 6 characters")
+
+		if !v.Valid() {
+			helpers.FailedValidationResponse(w, r, v.Errors)
 			return
 		}
 
