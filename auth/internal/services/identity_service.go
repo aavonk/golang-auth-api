@@ -65,6 +65,9 @@ func (s *IdentityService) HandleRegister(potentialUser *domain.User) (*domain.Us
 	// it handles the error that would come from attempting to insert a user
 	// with the same email, and returns an internal error(ErrDuplicateEmail).
 
+	// Hash the password before sending to DB
+	potentialUser.HashPassword()
+
 	newUser, err := s.userRepo.Create(potentialUser)
 
 	if err != nil {

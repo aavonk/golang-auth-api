@@ -124,12 +124,8 @@ func (r *UserRepo) GetById(id string) (*domain.User, error) {
 // as it's only parameter, and returns it if the insert is successful
 // otherwise, it returns an error
 //
-// @Note:
-// Before Saving it to the database, it hashes the password. If the hashing is done
-// elsewhere, the password will then be double hashed and unable to check if a user has
-// given a valid password
+
 func (r *UserRepo) Create(user *domain.User) (*domain.User, error) {
-	user.HashPassword()
 
 	model := UserDBModel{}
 	query := `INSERT INTO users (id, first_name, last_name, email, password, activated)
