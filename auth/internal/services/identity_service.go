@@ -60,12 +60,10 @@ func (s *IdentityService) HandleLogin(req *identity.LoginRequest) (*domain.User,
 // The potentialUser param must be a pointer to a domain.User struct so that the password
 // can be hashed.
 func (s *IdentityService) HandleRegister(potentialUser *domain.User) (*domain.User, error) {
-	// Search for existing user
-	found, _ := s.userRepo.GetByEmail(potentialUser.Email)
-
-	if found != nil {
-		return nil, errors.New("account already exists")
-	}
+	// There's no need to check if a user already exists with the email
+	// address given. When the repository attempts to insert a user into the DB
+	// it handles the error that would come from attempting to insert a user
+	// with the same email, and returns an internal error(ErrDuplicateEmail).
 	potentialUser.Prepare()
 	err := potentialUser.Validate()
 
