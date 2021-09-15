@@ -5,6 +5,7 @@ import (
 	"errors"
 	"net/http"
 	"os"
+	"time"
 
 	"github.com/golang-jwt/jwt"
 	"github.com/google/uuid"
@@ -54,9 +55,13 @@ func ComparePasswords(hashedPassword, suppliedPassword []byte) error {
 	return bcrypt.CompareHashAndPassword(hashedPassword, suppliedPassword)
 }
 
-// TODO: Add Expiration date on token
-
-func newToken(claims JWTClaims) (string, error) {
+func newToken(claims *JWTClaims) (string, error) {
+	//TODO:
+	//TODO:
+	//TODO:
+	//TODO: Make Expiration time 15 minutes and implement a refresh token
+	// Add expiration to the claims
+	claims.ExpiresAt = time.Now().Add(24 * time.Hour).Unix()
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 
@@ -89,7 +94,7 @@ func ExtractClaimsFromToken(tokenString string) (JWTClaims, error) {
 
 // TODO: Add Expiration date on cookie
 func SetCookie(w http.ResponseWriter, user *domain.User) error {
-	token, err := newToken(JWTClaims{
+	token, err := newToken(&JWTClaims{
 		UserId: user.ID,
 		Email:  user.Email,
 	})
@@ -115,7 +120,7 @@ func SetCookie(w http.ResponseWriter, user *domain.User) error {
 		Secure:   true,
 		HttpOnly: true,
 		// SameSite:   0,
-		Unparsed: []string{},
+		// Unparsed: []string{},
 	}
 	http.SetCookie(w, cookie)
 
