@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"errors"
 	"net/http"
 
 	"github.com/todo-app/api/helpers"
@@ -25,8 +26,12 @@ func login(service services.IdentityServiceInterface) http.HandlerFunc {
 
 		user, err := service.HandleLogin(&loginReq)
 		if err != nil {
-			helpers.InvalidCredentialsResponse(w, r, err)
-
+			switch {
+			case errors.Is(err, identity.ErrInvalidCredentials):
+				helpers.InvalidCredentialsResponse(w, r, err)
+			default:
+				helpers.ServerErrReponse(w, r, err)
+			}
 			return
 		}
 

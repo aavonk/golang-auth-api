@@ -33,7 +33,7 @@ func (s *IdentityService) HandleLogin(req *identity.LoginRequest) (*domain.User,
 
 	if err != nil {
 		if errors.Is(err, repositories.ErrRecordNotFound) {
-			return nil, errors.New("invalid credentials")
+			return nil, identity.ErrInvalidCredentials
 		}
 		return nil, err
 	}
@@ -42,7 +42,7 @@ func (s *IdentityService) HandleLogin(req *identity.LoginRequest) (*domain.User,
 	err = identity.ComparePasswords([]byte(existingUser.Password), []byte(req.Passsword))
 
 	if err != nil {
-		return nil, errors.New("invalid credentials")
+		return nil, identity.ErrInvalidCredentials
 	}
 
 	// If passwords are same, we're good.
