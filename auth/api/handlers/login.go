@@ -8,7 +8,6 @@ import (
 	"github.com/todo-app/internal/application"
 	"github.com/todo-app/internal/identity"
 	"github.com/todo-app/internal/services"
-	"github.com/todo-app/pkg/logger"
 )
 
 func Login(app *application.App) http.HandlerFunc {
@@ -26,7 +25,6 @@ func login(service services.IdentityServiceInterface) http.HandlerFunc {
 		}
 
 		user, err := service.HandleLogin(&loginReq)
-		logger.Info.Printf("FOUND USER %+v", user)
 		if err != nil {
 			switch {
 			case errors.Is(err, identity.ErrInvalidCredentials):
