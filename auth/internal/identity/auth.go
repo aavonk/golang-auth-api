@@ -2,6 +2,7 @@ package identity
 
 import (
 	"context"
+	"errors"
 	"net/http"
 	"os"
 
@@ -15,9 +16,10 @@ import (
 )
 
 var (
-	IdentitySessionName = "user-session"
-	SessionStore        *sessions.CookieStore
-	cookies             *securecookie.SecureCookie
+	ErrInvalidCredentials = errors.New("invalid credentials")
+	IdentitySessionName   = "user-session"
+	SessionStore          *sessions.CookieStore
+	cookies               *securecookie.SecureCookie
 )
 
 func init() {
