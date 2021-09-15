@@ -45,6 +45,7 @@ func (m *UserDBModel) ToDomain() *domain.User {
 		LastName:  m.LastName,
 		Email:     m.Email,
 		Password:  m.Password,
+		CreatedAt: m.CreatedAt,
 	}
 }
 
