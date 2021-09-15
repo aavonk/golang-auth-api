@@ -93,7 +93,7 @@ func TestHandleLogin(t *testing.T) {
 		LastName:  "Goodbye",
 		Email:     "email@email.com",
 		Password:  password,
-		Activated: false,
+		Activated: true,
 	}, t)
 
 	if err != nil {
@@ -159,44 +159,29 @@ func TestHandleRegistration(t *testing.T) {
 	// password := "password"
 
 	type options struct {
-		ShouldFail           bool
-		Reason               string
+		WantErr              error
 		User                 domain.User
-		CreateUserBeforeTest bool
+		CreateUserBeforeTest bool // Will create a user right before registaring to simulate a duplicate key error
 		Name                 string
 	}
-	items := []options{
+	tests := []options{
+
 		{
-			ShouldFail:           true,
 			CreateUserBeforeTest: false,
-			Name:                 "Bad password",
-			Reason:               "[Model Validation]-Password doesn't meet requirements",
-			User: domain.User{
-				ID:        uuid.New(),
-				FirstName: "Test",
-				LastName:  "Testing",
-				Email:     testutil.MakeRandEmail(),
-				Password:  "1234",
-			},
-		},
-		{
-			ShouldFail:           true,
-			CreateUserBeforeTest: false,
-			Name:                 "Invalid Email",
-			Reason:               "[Model Validation]-Invalid email provided",
+			WantErr:              nil,
+			Name:                 "Success - 1",
 			User: domain.User{
 				ID:        uuid.New(),
 				FirstName: "Test",
 				LastName:  "Test",
-				Email:     "email.com",
+				Email:     "email1@email.com",
 				Password:  "password",
 			},
 		},
 		{
-			ShouldFail:           false,
 			CreateUserBeforeTest: false,
-			Reason:               "Should not fail",
-			Name:                 "Valid",
+			WantErr:              nil,
+			Name:                 "Success - 2",
 			User: domain.User{
 				ID:        uuid.New(),
 				FirstName: "Test",
@@ -206,10 +191,9 @@ func TestHandleRegistration(t *testing.T) {
 			},
 		},
 		{
-			ShouldFail:           true,
 			CreateUserBeforeTest: true,
-			Name:                 "Existing user",
-			Reason:               "[Existing user] - User with same email already exists. Should fail",
+			WantErr:              repositories.ErrDuplicateEmail,
+			Name:                 "Err Duplicate Email",
 			User: domain.User{
 				ID:        uuid.New(),
 				FirstName: "Test",
@@ -220,31 +204,33 @@ func TestHandleRegistration(t *testing.T) {
 		},
 	}
 
-	for _, item := range items {
-		t.Run(item.Name, func(t *testing.T) {
+	for _, tt := range tests {
+		t.Run(tt.Name, func(t *testing.T) {
 			// If we create a user before the actua test implementation is passed,
 			// the test case should fail because there will be an existing user in the
 			// database with the same email. This creates that user, and then allows
 			// the rest of the test case to continue.
-			if item.CreateUserBeforeTest {
-				_, err := service.HandleRegister(&item.User)
+			if tt.CreateUserBeforeTest {
+				// Pass in a user struct with the test users value. The benefit of doing it this way
+				// rather than just passing in tt.User as the param, is that we can make our own ID
+				// If we passed in the tt.User, we would get a duplicate primary key error from postgres
+				_, err := service.HandleRegister(&domain.User{
+					ID:        uuid.New(),
+					FirstName: tt.User.FirstName,
+					LastName:  tt.User.LastName,
+					Email:     tt.User.Email,
+					Password:  tt.User.Password,
+					Activated: tt.User.Activated,
+				})
 				if err != nil {
 					t.Errorf("Failed creating user before tests. Error: %v", err)
 				}
 			}
 
-			user, err := service.HandleRegister(&item.User)
+			_, err := service.HandleRegister(&tt.User)
 
-			// If the test case is supposed to fail, and no error is present
-			// something went wrong
-			if (item.ShouldFail && err == nil) || (item.ShouldFail && user != nil) {
-				t.Errorf("Item was supposed to fail but did not. Reason that it was supposed to fail: %s", item.Reason)
-			}
-
-			// If the test is supposed to pass and there is an error, or the user returned is empty
-			// then something went wrong.
-			if (!item.ShouldFail && err != nil) || (!item.ShouldFail && user == nil) {
-				t.Errorf("Was not supposed to fail but did. Error: %s. Reason supposed to fail %s", err, item.Reason)
+			if err != tt.WantErr {
+				t.Errorf("got %v; want %v", err, tt.WantErr)
 			}
 
 		})

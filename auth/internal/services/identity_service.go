@@ -40,13 +40,13 @@ func (s *IdentityService) HandleLogin(req *identity.LoginRequest) (*domain.User,
 
 	// Compare the passwords of the stored user & the supplied password
 	err = identity.ComparePasswords([]byte(existingUser.Password), []byte(req.Passsword))
+	// If passwords are same, we're good.
 
 	if err != nil {
 		return nil, identity.ErrInvalidCredentials
 	}
 
-	// If passwords are same, we're good.
-
+	// Prevent them from logging in if they haven't activated their account.
 	if !existingUser.Activated {
 		return nil, identity.ErrUserNotActivated
 	}
