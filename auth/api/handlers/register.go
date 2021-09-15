@@ -62,8 +62,6 @@ func register(service services.IdentityServiceInterface, tokenRepo repositories.
 			return
 		}
 
-		userResponse := createdUser.ToHTTPResponse()
-
 		// Send Welcome email in a goroutine so it gets processed in the background
 		go func() {
 			// Run a deferred function which uses recover() to catch any panic from within the goroutine
@@ -87,10 +85,15 @@ func register(service services.IdentityServiceInterface, tokenRepo repositories.
 				logger.Error.Println(err)
 			}
 		}()
+
+		response := map[string]interface{}{
+			"success": true,
+			"message": "Please check your email to confirm your registration",
+		}
 		// Set the header as 202 Accepted to indicate that the request
 		// has been accepted for processing but may not be complete because
 		// the email could still be sending.
-		err = helpers.SendJSON(w, http.StatusAccepted, userResponse, nil)
+		err = helpers.SendJSON(w, http.StatusAccepted, response, nil)
 		if err != nil {
 			helpers.ServerErrReponse(w, r, err)
 		}

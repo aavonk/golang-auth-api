@@ -18,6 +18,7 @@ import (
 
 var (
 	ErrInvalidCredentials = errors.New("invalid credentials")
+	ErrUserNotActivated   = errors.New("account not activated")
 	IdentitySessionName   = "user-session"
 	SessionStore          *sessions.CookieStore
 	cookies               *securecookie.SecureCookie
@@ -42,8 +43,9 @@ type LoginRequest struct {
 }
 
 type JWTClaims struct {
-	UserId uuid.UUID `json:"user_id"`
-	Email  string    `json:"email"`
+	UserId    uuid.UUID `json:"user_id"`
+	Email     string    `json:"email"`
+	Activated bool      `json:"activated"`
 	jwt.StandardClaims
 }
 
@@ -95,8 +97,9 @@ func ExtractClaimsFromToken(tokenString string) (JWTClaims, error) {
 // TODO: Add Expiration date on cookie
 func SetCookie(w http.ResponseWriter, user *domain.User) error {
 	token, err := newToken(&JWTClaims{
-		UserId: user.ID,
-		Email:  user.Email,
+		UserId:    user.ID,
+		Email:     user.Email,
+		Activated: user.Activated,
 	})
 
 	if err != nil {

@@ -48,7 +48,7 @@ func PanicRecovery(next http.Handler) http.Handler {
 }
 
 // AuthenticationMiddleware purposefully returns a http.HandlerFunc rather
-// than an http.handle so that it can be applied to individual routes and
+// than an http.handler so that it can be applied to individual routes and
 // not used on every single route.
 func AuthenticationMiddleware(next http.HandlerFunc) http.HandlerFunc {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -63,6 +63,12 @@ func AuthenticationMiddleware(next http.HandlerFunc) http.HandlerFunc {
 		// Extract the info from the token and place it in the claims var
 		claims, err := identity.ExtractClaimsFromToken(token)
 		if err != nil {
+			helpers.UnauthorizedErrResponse(w, r, err)
+			return
+		}
+
+		// Make sure that the user is activated - if not throw an error
+		if !claims.Activated {
 			helpers.UnauthorizedErrResponse(w, r, err)
 			return
 		}

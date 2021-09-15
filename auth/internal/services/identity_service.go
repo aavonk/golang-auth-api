@@ -47,8 +47,8 @@ func (s *IdentityService) HandleLogin(req *identity.LoginRequest) (*domain.User,
 
 	// If passwords are same, we're good.
 
-	if err != nil {
-		return nil, errors.New("error generating token")
+	if !existingUser.Activated {
+		return nil, identity.ErrUserNotActivated
 	}
 
 	return existingUser, nil
