@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"reflect"
 	"testing"
 	"time"
 
@@ -355,6 +356,92 @@ func TestCreate(t *testing.T) {
 		})
 	}
 
+	testutil.TeardownUserTable(db, t)
+}
+
+func TestUpdate(t *testing.T) {
+	testutil.SetupUserTable(db)
+	repo := NewUserRepository(db)
+
+	tests := []struct {
+		Name             string
+		WantErr          error
+		User             *domain.User
+		CreateBeforeTest bool
+	}{
+		{
+			Name:    "Success1",
+			WantErr: nil,
+			User: &domain.User{
+				ID:        uuid.New(),
+				FirstName: "test",
+				LastName:  "test",
+				Email:     "test@gmail.com",
+				Password:  "asdfasdf",
+				Activated: false,
+			},
+		},
+		{
+			Name:    "Success 2",
+			WantErr: nil,
+			User: &domain.User{
+				ID:        uuid.New(),
+				FirstName: "test",
+				LastName:  "test",
+				Email:     "test7676@gmail.com",
+				Password:  "hello",
+				Activated: false,
+			},
+		},
+		{
+			Name:    "Success 3",
+			WantErr: nil,
+			User: &domain.User{
+				ID:        uuid.New(),
+				FirstName: "hello",
+				LastName:  "goodbye",
+				Email:     "email777@gmail.com",
+				Password:  "passwordthatslong",
+				Activated: false,
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.Name, func(t *testing.T) {
+
+			_, err := repo.Create(tt.User)
+			if err != nil {
+				t.Errorf("failed creating user before test: %s", err)
+			}
+
+			// Make a change to the user *these are pointers, so the actual memory location value will be changed*
+			tt.User.Activated = true
+			tt.User.LastName = "Test Lastname"
+
+			err = repo.Update(tt.User)
+
+			if err != tt.WantErr {
+				t.Errorf("wanted %s; got %s", tt.WantErr, err)
+			}
+
+			// Create a new user struct with the updates we expect to be reflected
+			want := &domain.User{
+				ID:        tt.User.ID,
+				FirstName: tt.User.FirstName,
+				LastName:  "Test Lastname",
+				Email:     tt.User.Email,
+				Password:  tt.User.Password,
+				Activated: true,
+				CreatedAt: tt.User.CreatedAt,
+			}
+
+			if !reflect.DeepEqual(tt.User, want) {
+				t.Errorf("got %+v, want: %+v", tt.User, want)
+			}
+
+		})
+	}
 	testutil.TeardownUserTable(db, t)
 }
 

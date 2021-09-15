@@ -2,6 +2,7 @@ package domain
 
 import (
 	"strings"
+	"time"
 
 	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
@@ -14,6 +15,7 @@ type User struct {
 	Email     string    `json:"email"`
 	Password  string    `json:"password"`
 	Activated bool      `json:"activated"`
+	CreatedAt time.Time `json:"created_at"`
 }
 
 type UserResponse struct {
@@ -22,6 +24,7 @@ type UserResponse struct {
 	LastName  string    `json:"lastName"`
 	Email     string    `json:"email"`
 	Activated bool      `json:"activated"`
+	CreatedAt time.Time `json:"created_at"`
 }
 
 // var (
@@ -67,6 +70,7 @@ func (u *User) Prepare() {
 
 }
 
+// ToHTTPResponse insures that the users password is never included in the response
 func (u *User) ToHTTPResponse() *UserResponse {
 	return &UserResponse{
 		ID:        u.ID,
@@ -74,5 +78,6 @@ func (u *User) ToHTTPResponse() *UserResponse {
 		FirstName: u.FirstName,
 		LastName:  u.LastName,
 		Activated: u.Activated,
+		CreatedAt: u.CreatedAt,
 	}
 }

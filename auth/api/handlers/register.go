@@ -66,7 +66,8 @@ func register(service services.IdentityServiceInterface, tokenRepo repositories.
 
 		// Send Welcome email in a goroutine so it gets processed in the background
 		go func() {
-			// Run a deferred function which uses recover() to catch any panic, and log an
+			// Run a deferred function which uses recover() to catch any panic from within the goroutine
+			// (which wont be caught by our panic recovery middleware), and log an
 			// error message instead of terminating the application.
 			defer func() {
 				if err := recover(); err != nil {
@@ -82,7 +83,7 @@ func register(service services.IdentityServiceInterface, tokenRepo repositories.
 			err = mailer.Send(createdUser.Email, "user_welcome.tmpl", data)
 			if err != nil {
 				// We just want to log it instead of send an error response
-				// to the client
+				// to the client as they might have already gotten the response below.
 				logger.Error.Println(err)
 			}
 		}()

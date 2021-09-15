@@ -20,7 +20,8 @@ func Get(app *application.App) *mux.Router {
 	r.HandleFunc("/v1/health", handlers.HealthCheck(app)).Methods(http.MethodGet)
 	r.HandleFunc("/v1/register", handlers.Register(app)).Methods(http.MethodPost)
 	r.HandleFunc("/v1/signin", handlers.Login(app)).Methods(http.MethodPost)
-	r.HandleFunc("/v1/currentuser", middleware.AuthenticationMiddleware(handlers.GetCurrentUser(app))).Methods(http.MethodGet)
+	r.HandleFunc("/v1/user/me", middleware.AuthenticationMiddleware(handlers.GetCurrentUser(app))).Methods(http.MethodGet)
+	r.HandleFunc("/v1/user/activate", handlers.ActivateUser(app)).Methods(http.MethodPut)
 	http.Handle("/", r)
 
 	// Standard Middlewares applied on every request

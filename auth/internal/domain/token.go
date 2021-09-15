@@ -5,6 +5,8 @@ import (
 	"crypto/sha256"
 	"encoding/base32"
 	"time"
+
+	"github.com/todo-app/internal/validator"
 )
 
 const (
@@ -58,4 +60,9 @@ func GenerateToken(userId string, ttl time.Duration, scope string) (*Token, erro
 	token.Hash = hash[:]
 
 	return token, nil
+}
+
+func ValidateTokenPlainText(v *validator.Validator, tokenPlainText string) {
+	v.Check(tokenPlainText != "", "token", "must be provided")
+	v.Check(len(tokenPlainText) == 26, "token", "must be 26 bytes long")
 }

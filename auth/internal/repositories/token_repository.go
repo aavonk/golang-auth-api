@@ -11,13 +11,8 @@ import (
 type TokenRepositoryInterface interface {
 	New(userId string, ttl time.Duration, scope string) (*domain.Token, error)
 	Insert(token *domain.Token) error
+	DeleteAllForUser(scope, userId string) error
 }
-
-// Check that the plaintext token has been provided and is exactly 26 bytes long.
-// func ValidateTokenPlaintext(v *validator.Validator, tokenPlaintext string) {
-//     v.Check(tokenPlaintext != "", "token", "must be provided")
-//     v.Check(len(tokenPlaintext) == 26, "token", "must be 26 bytes long")
-// }
 
 type TokenRepository struct {
 	db *sqlx.DB
