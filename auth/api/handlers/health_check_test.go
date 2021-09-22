@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
@@ -98,5 +99,21 @@ func TestHealthCheckRoute(t *testing.T) {
 
 	if res.StatusCode != http.StatusOK {
 		t.Errorf("got %d; want %v", res.StatusCode, http.StatusOK)
+	}
+
+	defer res.Body.Close()
+
+	var values map[string]interface{}
+
+	err = json.NewDecoder(res.Body).Decode(&values)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// Check that the system status is present and says available
+	// The body should look like this:
+	// {"data": "status": "...", "system_info": "..."}
+	if values["data"].(map[string]interface{})["status"] != "available" {
+		t.Errorf("got: %v; want: %s", values["status"], "available")
 	}
 }

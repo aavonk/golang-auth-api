@@ -9,8 +9,12 @@ import (
 )
 
 type TokenRepositoryInterface interface {
+	// New is a shortcut which creates a new Token struct and then inserts the
+	// data in the tokens table.
 	New(userId string, ttl time.Duration, scope string) (*domain.Token, error)
+	// Insert adds the data for a specific token to the tokens table
 	Insert(token *domain.Token) error
+	// DeleteAllForUser deletes all tokens for a specific user and scope
 	DeleteAllForUser(scope, userId string) error
 }
 
