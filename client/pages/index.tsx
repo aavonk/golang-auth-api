@@ -1,12 +1,10 @@
-import type { NextPage } from 'next'
-import Head from 'next/head'
-import Image from 'next/image'
-import styles from '../styles/Home.module.css'
-import styled from 'styled-components'
+import type { NextPage } from "next";
+import Head from "next/head";
+import styles from "../styles/Home.module.css";
+import { Button } from "../common/Button";
+import Card from "../common/Card";
+import Link from "next/link";
 
-const Button = styled.button`
-  background-color: red;
-`;
 const Home: NextPage = () => {
   return (
     <div className={styles.container}>
@@ -18,15 +16,17 @@ const Home: NextPage = () => {
 
       <main className={styles.main}>
         <h1 className={styles.title}>
+          {/*  eslint-disable-next-line @next/next/no-html-link-for-pages */}
           Welcome to <a href="/">App With No Name!</a>
         </h1>
-      <Button>Login</Button>
-
-
+        <Card>
+          <Link href="/login" passHref>
+            <Button as="a">Login page</Button>
+          </Link>
+        </Card>
       </main>
-
     </div>
-  )
-}
+  );
+};
 
-export default Home
+export default Home;
