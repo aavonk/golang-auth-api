@@ -7,7 +7,7 @@ const StyledCard = styled.div`
   background-color: #fff;
   padding: 56px 48px;
 
-  & @media (max-width: 880px) {
+  @media (max-width: 880px) {
     padding: 32px 20px;
   }
 `;
