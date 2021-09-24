@@ -47,4 +47,4 @@ services:
       - "3000:3000"
     volumes:
       - ./client:/app
-      - /app/client/node_modules
+      #- /app/client/node_modules
