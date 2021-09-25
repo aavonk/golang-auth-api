@@ -1,10 +1,10 @@
 import { NextPage } from "next";
-import Card from "../common/Card";
+import Card from "@common/Card";
 import styles from "../styles/register.module.css";
-import Box from "../common/Box";
+import Box from "@common/Box";
 import React, { useState } from "react";
-import Input from "../common/Input/Input";
-import { Button } from "../common/Button";
+import Input from "@common/Input";
+import { Button } from "@common/Button";
 
 const RegisterPage: NextPage = () => {
   const [disabled, setDisabled] = useState(true);

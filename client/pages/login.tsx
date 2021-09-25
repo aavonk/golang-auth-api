@@ -1,10 +1,10 @@
 import { NextPage } from "next";
 import styles from "../styles/login.module.css";
-import Card from "../common/Card";
-import Input from "../common/Input/Input";
+import Card from "@common/Card";
+import Input from "@common/Input";
 import React, { useState } from "react";
-import Box from "../common/Box";
-import { Button } from "../common/Button";
+import Box from "@common/Box";
+import { Button } from "@common/Button";
 
 const LoginPage: NextPage = () => {
   const [values, setValues] = useState({
