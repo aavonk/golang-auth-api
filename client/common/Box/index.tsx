@@ -1,14 +1,17 @@
+type Quadrant = {
+  top?: number;
+  bottom?: number;
+  left?: number;
+  right?: number;
+};
+
 type BoxProps = {
-  margin?: {
-    top?: number;
-    bottom?: number;
-    left?: number;
-    right?: number;
-  };
+  margin?: Quadrant;
+  padding?: Quadrant;
   children: React.ReactNode;
 };
 
-const Box: React.FC<BoxProps> = ({ margin, children }) => {
+const Box: React.FC<BoxProps> = ({ margin, children, padding }) => {
   return (
     <div
       style={{
@@ -16,6 +19,10 @@ const Box: React.FC<BoxProps> = ({ margin, children }) => {
         marginBottom: margin?.bottom,
         marginLeft: margin?.left,
         marginRight: margin?.right,
+        paddingTop: padding?.top,
+        paddingBottom: padding?.bottom,
+        paddingRight: padding?.right,
+        paddingLeft: padding?.left,
       }}
     >
       {children}

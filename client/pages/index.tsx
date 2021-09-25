@@ -23,6 +23,9 @@ const Home: NextPage = () => {
           <Link href="/login" passHref>
             <Button as="a">Login page</Button>
           </Link>
+          <Link href="/register" passHref>
+            <Button as="a">Register page</Button>
+          </Link>
         </Card>
       </main>
     </div>

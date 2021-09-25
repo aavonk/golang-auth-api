@@ -1,5 +1,6 @@
 import React from "react";
 import styles from "./input.module.css";
+import classnames from "classnames/bind";
 
 type NativeInputProps = React.AllHTMLAttributes<HTMLInputElement>;
 
@@ -17,11 +18,24 @@ export interface TextInputDefaultProps {
   placeholder?: string;
   icon?: React.ComponentType<{ className?: string }>;
   name?: string;
+  size?: "medium" | "large";
 }
 
+const cx = classnames.bind(styles);
+
 const Input = React.forwardRef<HTMLInputElement, TextInputDefaultProps>(
-  function Input({ type = "text", ...props }, ref) {
-    return <input className={styles.root} type={type} {...props} />;
+  function Input({ type = "text", size = "medium", ...props }, ref) {
+    return (
+      <input
+        ref={ref}
+        className={cx(styles.root, {
+          large: size === "large",
+          medium: size === "medium",
+        })}
+        type={type}
+        {...props}
+      />
+    );
   }
 );
 

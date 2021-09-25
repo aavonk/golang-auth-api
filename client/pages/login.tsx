@@ -1,5 +1,5 @@
 import { NextPage } from "next";
-import styles from "./login.module.css";
+import styles from "../styles/login.module.css";
 import Card from "../common/Card";
 import Input from "../common/Input/Input";
 import React, { useState } from "react";
@@ -18,14 +18,19 @@ const LoginPage: NextPage = () => {
       [e.target.name]: e.target.value,
     });
   };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    console.log(values);
+  };
   return (
     <div className={styles.root}>
       <div className={styles.contentWrapper}>
         <div className={styles.cardWrapper}>
           <Card>
-            <div className={styles.cardBody}>
+            <form className={styles.cardBody} onSubmit={handleSubmit}>
               <Box>
-                <h2 className={styles.title}>Sign in to your account</h2>
+                <h2 className="title-card">Sign in to your account</h2>
               </Box>
               <Box margin={{ top: 20, bottom: 32 }}>
                 <Box margin={{ bottom: 12 }}>
@@ -37,6 +42,7 @@ const LoginPage: NextPage = () => {
                   name="email"
                   autoComplete="email"
                   id="emailInput"
+                  size="large"
                 />
               </Box>
               <Box margin={{ top: 20, bottom: 32 }}>
@@ -49,12 +55,13 @@ const LoginPage: NextPage = () => {
                   name="password"
                   id="passwordInput"
                   type="password"
+                  size="large"
                 />
               </Box>
               <Button fullWidth type="submit">
                 Continue
               </Button>
-            </div>
+            </form>
           </Card>
         </div>
       </div>

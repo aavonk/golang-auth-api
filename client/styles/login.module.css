@@ -35,11 +35,3 @@
 .cardBody {
   padding: 0 20px;
 }
-
-.title {
-  font-size: 24px;
-  font-weight: 500;
-  line-height: 32px;
-  letter-spacing: -0.2px;
-  color: var(--text-dark);
-}

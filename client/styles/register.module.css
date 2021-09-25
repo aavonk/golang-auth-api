@@ -1,0 +1,51 @@
+.root {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100vh;
+}
+
+.wrapper {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  height: 100%;
+  margin: 0 16px;
+  padding-top: 56px;
+}
+
+.wrapper > input {
+  height: 60px !important;
+}
+
+@media (min-width: 1080px) {
+  .wrapper {
+    width: 1080px;
+    margin: 0 auto;
+  }
+}
+
+.left,
+.right {
+  display: flex;
+  flex-direction: column;
+}
+
+.left {
+  width: 50%;
+  min-width: 50%;
+}
+
+@media (max-width: 880px) {
+  .right {
+    display: none;
+  }
+
+  .left {
+    width: 380px;
+  }
+
+  .wrapper {
+    justify-content: center;
+  }
+}

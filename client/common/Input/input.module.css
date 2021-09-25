@@ -16,8 +16,23 @@
     rgb(0 0 0 / 0%) 0px 0px 0px 0px, rgb(0 0 0 / 0%) 0px 0px 0px 0px,
     rgb(0 0 0 / 0%) 0px 0px 0px 0px;
   max-width: 100%;
-  min-height: 44px;
   border-radius: 4px;
+}
+
+.root:focus {
+  box-shadow: rgb(0 0 0 / 0%) 0px 0px 0px 0px,
+    rgb(58 151 212 / 36%) 0px 0px 0px 4px, rgb(0 0 0 / 0%) 0px 0px 0px 0px,
+    rgb(60 66 87 / 16%) 0px 0px 0px 1px, rgb(0 0 0 / 0%) 0px 0px 0px 0px,
+    rgb(0 0 0 / 0%) 0px 0px 0px 0px, rgb(0 0 0 / 0%) 0px 0px 0px 0px;
+}
+
+.root.large {
+  min-height: 44px;
   padding-left: 16px;
   padding-right: 16px;
+}
+
+.root.medium {
+  min-height: 36px;
+  padding: 0 12px;
 }

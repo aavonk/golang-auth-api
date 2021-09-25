@@ -5,12 +5,23 @@
   --text-tertiary: #c1c9d2;
 }
 
+.title-card {
+  font-size: 24px;
+  font-weight: 500;
+  line-height: 32px;
+  letter-spacing: -0.2px;
+  color: var(--text-dark);
+}
+
+/* -------------------------- CSS Resets ---------------------------- */
 html,
 body {
   padding: 0;
   margin: 0;
   font-family: "Inter", -apple-system, BlinkMacSystemFont, Segoe UI, Roboto,
     Oxygen, Ubuntu, Cantarell, Fira Sans, Droid Sans, Helvetica Neue, sans-serif;
+  font-size: 14px;
+  color: var(--text-primary);
 }
 
 a {
@@ -83,7 +94,7 @@ select {
 
 button {
   border: none;
-  cursor: hover;
+  cursor: pointer;
   /* Corrects font smoothing for webkit */
   -webkit-font-smoothing: inherit;
   -moz-osx-font-smoothing: inherit;
