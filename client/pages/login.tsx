@@ -5,6 +5,7 @@ import Input from "@common/Input";
 import React, { useState } from "react";
 import Box from "@common/Box";
 import { Button } from "@common/Button";
+import axios from "axios";
 
 const LoginPage: NextPage = () => {
   const [values, setValues] = useState({
@@ -19,9 +20,11 @@ const LoginPage: NextPage = () => {
     });
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log(values);
+
+    const res = await axios.post(`/api/v1/signin`, values);
+    console.log(res);
   };
   return (
     <div className={styles.root}>

@@ -21,6 +21,8 @@ func SendJSON(w http.ResponseWriter, status int, data interface{}, headers http.
 	//		}
 	//	}
 	encoded := envelope{"data": data}
+	//Allow CORS here By * or specific origin
+	w.Header().Set("Access-Control-Allow-Origin", "*")
 
 	res, err := json.Marshal(encoded)
 	if err != nil {

@@ -1,18 +1,20 @@
-version: '3.9'
+version: "3.9"
 
 volumes:
   authservicevolume:
     name: authservice-volume
-networks: 
+networks:
   authservicenetwork:
     name: authservice-network
+  internetservice:
+    name: internet-service
 
 services:
   authservice-postgres:
     container_name: auth-pg
     image: postgres:13
     restart: on-failure
-    env_file: 
+    env_file:
       - ./auth/.env
     ports:
       - "${AUTH_POSTGRES_PORT}:${AUTH_POSTGRES_PORT}"
@@ -25,16 +27,17 @@ services:
   authservice-api:
     container_name: auth-api
     build: ./auth
-    env_file: 
+    env_file:
       - ./auth/.env
-    depends_on: 
-     - authservice-postgres
+    depends_on:
+      - authservice-postgres
     volumes:
       - ./auth:/app
     ports:
       - "${AUTH_API_PORT}:${AUTH_API_PORT}"
     networks:
       - authservicenetwork
+      - internetservice
     entrypoint: ["/bin/bash", "./scripts/entrypoint.dev.sh"]
 
   client:
@@ -47,4 +50,6 @@ services:
       - "3000:3000"
     volumes:
       - ./client:/app
+    networks:
+      - internetservice
       #- /app/client/node_modules
