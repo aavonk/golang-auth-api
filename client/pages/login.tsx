@@ -6,12 +6,16 @@ import React, { useState } from "react";
 import Box from "@common/Box";
 import { Button } from "@common/Button";
 import axios from "axios";
+import { useAuth } from "context/auth";
+import { useRouter } from "next/router";
 
 const LoginPage: NextPage = () => {
   const [values, setValues] = useState({
     email: "",
     password: "",
   });
+  // const { dispatch } = useAuth();
+  const router = useRouter();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setValues({
@@ -24,7 +28,15 @@ const LoginPage: NextPage = () => {
     e.preventDefault();
 
     const res = await axios.post(`/api/v1/signin`, values);
-    console.log(res);
+    // dispatch({
+    //   type: "LOG_IN",
+    //   payload: res.data.data,
+    // });
+    console.log(res.data);
+
+    router.push("/home");
+
+    // TODO:!!! Handle error
   };
   return (
     <div className={styles.root}>

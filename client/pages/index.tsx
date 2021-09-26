@@ -4,8 +4,11 @@ import styles from "../styles/Home.module.css";
 import { Button } from "../common/Button";
 import Card from "../common/Card";
 import Link from "next/link";
+import axios from "axios";
 
-const Home: NextPage = () => {
+//@ts-ignore
+const Index: NextPage = ({ data }: { data: any }) => {
+  console.log(`In Comp: ${data}`);
   return (
     <div className={styles.container}>
       <Head>
@@ -32,4 +35,4 @@ const Home: NextPage = () => {
   );
 };
 
-export default Home;
+export default Index;
