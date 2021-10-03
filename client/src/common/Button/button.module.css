@@ -1,0 +1,22 @@
+.button_root {
+  min-height: 44px;
+  display: inline-flex;
+  border-radius: 4px;
+  background-color: #654ef5;
+  color: #fff;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 16px;
+  vertical-align: middle;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.button_root.fullWidth {
+  width: 100%;
+}
+
+.button_root:disabled {
+  opacity: 0.5;
+  pointer-events: none;
+}
