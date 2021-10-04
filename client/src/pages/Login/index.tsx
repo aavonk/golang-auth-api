@@ -5,12 +5,15 @@ import { Button } from "../../common/Button";
 import Card from "../../common/Card";
 import Input from "../../common/Input";
 import styles from "./login.module.css";
+import { Link } from "react-router-dom";
 
 function LoginPage() {
   const [values, setValues] = useState({
     email: "",
     password: "",
   });
+
+  const [error, setError] = useState(false);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setValues({
@@ -22,11 +25,12 @@ function LoginPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    const res = await axios.post(`/api/v1/signin`, values);
-
-    console.log(res.data);
-
-    // TODO:!!! Handle error
+    try {
+      const res = await axios.post(`/api/auth/signin`, values);
+      console.log(res.data);
+    } catch (err) {
+      setError(true);
+    }
   };
   return (
     <div className={styles.root}>
@@ -63,11 +67,26 @@ function LoginPage() {
                   size="large"
                 />
               </Box>
+              <Box margin={{ top: -10, bottom: 20 }}>
+                {error && (
+                  <div className="text-color--red">
+                    Incorrect email or password
+                  </div>
+                )}
+              </Box>
               <Button fullWidth type="submit">
                 Continue
               </Button>
             </form>
           </Card>
+          <Box margin={{ top: 32, left: 20 }}>
+            <p>
+              Dont have an account?{" "}
+              <Link to="/register" className="link">
+                Sign up
+              </Link>
+            </p>
+          </Box>
         </div>
       </div>
     </div>

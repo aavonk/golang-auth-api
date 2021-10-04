@@ -3,6 +3,7 @@
   --text-primary: #3c4257;
   --text-secondary: #697386;
   --text-tertiary: #c1c9d2;
+  --blurple: #635bff;
 }
 
 .title-card {
@@ -11,6 +12,14 @@
   line-height: 32px;
   letter-spacing: -0.2px;
   color: var(--text-dark);
+}
+
+.text-color--red {
+  color: #cd3d64;
+}
+
+a.link {
+  color: var(--blurple);
 }
 
 /* -------------------------- CSS Resets ---------------------------- */

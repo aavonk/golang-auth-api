@@ -6,6 +6,8 @@ volumes:
 networks:
   authservicenetwork:
     name: authservice-network
+  web:
+    name: web
 
 services:
   # React frontend app
@@ -20,6 +22,8 @@ services:
     volumes:
       - ./client:/app
       - ./client/package.json:/app/package.json
+    networks:
+      - web
 
   # Golang API for authentication
   authservice-api:
@@ -35,6 +39,7 @@ services:
       - "${AUTH_API_PORT}:${AUTH_API_PORT}"
     networks:
       - authservicenetwork
+      - web
     entrypoint: ["/bin/bash", "./scripts/entrypoint.dev.sh"]
 
   # SQL database for auth service
