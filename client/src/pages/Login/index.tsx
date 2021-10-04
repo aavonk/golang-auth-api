@@ -1,35 +1,58 @@
-import { useState } from "react";
-import axios from "axios";
-import Box from "../../common/Box";
-import { Button } from "../../common/Button";
-import Card from "../../common/Card";
-import Input from "../../common/Input";
-import styles from "./login.module.css";
-import { Link } from "react-router-dom";
+import { useState } from 'react';
+import axios, { AxiosError } from 'axios';
+import Box from '../../common/Box';
+import { Button } from '../../common/Button';
+import Card from '../../common/Card';
+import Input from '../../common/Input';
+import styles from './login.module.css';
+import { Link } from 'react-router-dom';
+import { useForm } from '../../hooks/useForm';
+
+type LoginFields = {
+  email: string;
+  password: string;
+};
 
 function LoginPage() {
-  const [values, setValues] = useState({
-    email: "",
-    password: "",
+  const { values, errors, handleChange, handleSubmit } = useForm<LoginFields>({
+    validations: {
+      email: {
+        required: {
+          value: true,
+          message: 'Please enter your email',
+        },
+      },
+      password: {
+        required: {
+          value: true,
+          message: 'Please enter your password',
+        },
+      },
+    },
+    initialValues: {
+      email: '',
+      password: '',
+    },
+    onSubmit: () => {
+      login();
+    },
   });
+  const [networkError, setNetworkError] = useState(false);
 
-  const [error, setError] = useState(false);
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setValues({
-      ...values,
-      [e.target.name]: e.target.value,
-    });
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-
+  const login = async () => {
     try {
       const res = await axios.post(`/api/auth/signin`, values);
-      console.log(res.data);
+      console.log(res.status);
+      //@ts-ignore
+      if (res.data.error) {
+        console.log('EROROROROROR');
+      }
     } catch (err) {
-      setError(true);
+      if (axios.isAxiosError(err)) {
+        return setNetworkError(true);
+      }
+
+      alert('SOMETHING WENT WRONG');
     }
   };
   return (
@@ -47,12 +70,17 @@ function LoginPage() {
                 </Box>
                 <Input
                   value={values.email}
-                  onChange={handleChange}
+                  onChange={handleChange('email')}
                   name="email"
                   autoComplete="email"
                   id="emailInput"
                   size="large"
                 />
+                {errors.email && (
+                  <p className="text-color--red" style={{ marginTop: 10 }}>
+                    {errors.email}
+                  </p>
+                )}
               </Box>
               <Box margin={{ top: 20, bottom: 32 }}>
                 <Box margin={{ bottom: 12 }}>
@@ -60,18 +88,21 @@ function LoginPage() {
                 </Box>
                 <Input
                   value={values.password}
-                  onChange={handleChange}
+                  onChange={handleChange('password')}
                   name="password"
                   id="passwordInput"
                   type="password"
                   size="large"
                 />
+                {errors.password && (
+                  <p className="text-color--red" style={{ marginTop: 10 }}>
+                    {errors.password}
+                  </p>
+                )}
               </Box>
               <Box margin={{ top: -10, bottom: 20 }}>
-                {error && (
-                  <div className="text-color--red">
-                    Incorrect email or password
-                  </div>
+                {networkError && (
+                  <div className="text-color--red">Incorrect email or password</div>
                 )}
               </Box>
               <Button fullWidth type="submit">
@@ -81,7 +112,7 @@ function LoginPage() {
           </Card>
           <Box margin={{ top: 32, left: 20 }}>
             <p>
-              Dont have an account?{" "}
+              Dont have an account?{' '}
               <Link to="/register" className="link">
                 Sign up
               </Link>
