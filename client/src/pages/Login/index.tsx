@@ -1,10 +1,9 @@
 import { useState } from 'react';
-import axios, { AxiosError } from 'axios';
+import axios from 'axios';
 import Box from '../../common/Box';
 import { Button } from '../../common/Button';
 import Card from '../../common/Card';
 import Input from '../../common/Input';
-import styles from './login.module.css';
 import { Link } from 'react-router-dom';
 import { useForm } from '../../hooks/useForm';
 
@@ -56,17 +55,21 @@ function LoginPage() {
     }
   };
   return (
-    <div className={styles.root}>
-      <div className={styles.contentWrapper}>
-        <div className={styles.cardWrapper}>
+    <div className="flex flex-col w-full h-screen items-center">
+      <div className="flex flex-row w-full lg:w-1085 h-full justify-center items-center">
+        <div className={'w-96 md:w-1/2'}>
           <Card>
-            <form className={styles.cardBody} onSubmit={handleSubmit}>
+            <form className="px-5" onSubmit={handleSubmit}>
               <Box>
-                <h2 className="title-card">Sign in to your account</h2>
+                <h2 className=" text-2xl font-medium text-primary-dark ls-card-title ">
+                  Sign in to your account
+                </h2>
               </Box>
               <Box margin={{ top: 20, bottom: 32 }}>
                 <Box margin={{ bottom: 12 }}>
-                  <label htmlFor="emailInput">Email</label>
+                  <label htmlFor="emailInput" className="text-primary-reg">
+                    Email
+                  </label>
                 </Box>
                 <Input
                   value={values.email}
@@ -77,7 +80,7 @@ function LoginPage() {
                   size="large"
                 />
                 {errors.email && (
-                  <p className="text-color--red" style={{ marginTop: 10 }}>
+                  <p className="text-error" style={{ marginTop: 10 }}>
                     {errors.email}
                   </p>
                 )}
@@ -95,17 +98,17 @@ function LoginPage() {
                   size="large"
                 />
                 {errors.password && (
-                  <p className="text-color--red" style={{ marginTop: 10 }}>
+                  <p className="text-error" style={{ marginTop: 10 }}>
                     {errors.password}
                   </p>
                 )}
               </Box>
               <Box margin={{ top: -10, bottom: 20 }}>
                 {networkError && (
-                  <div className="text-color--red">Incorrect email or password</div>
+                  <div className="text-error">Incorrect email or password</div>
                 )}
               </Box>
-              <Button fullWidth type="submit">
+              <Button fullWidth type="submit" className="mb-5 mt-10">
                 Continue
               </Button>
             </form>
